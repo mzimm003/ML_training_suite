@@ -1,2 +1,12 @@
-from .base import TrainingScript, TrainingManager, Trainer
-from .control import Criterion, Optimizer, LRScheduler
+from .base import (
+    TrainingScript,
+    TrainSplits,
+    TrainingManager,
+    Trainer,
+    ray_trainable_wrap,
+    )
+from .control import (
+    Criterion,
+    Optimizer,
+    LRScheduler
+    )

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ml_training_suite"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Mark Zimmerman <mzimm003@gmail.com>"]
 readme = "README.md"

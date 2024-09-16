@@ -3,7 +3,7 @@ from ml_training_suite.registry import Registry
 
 from torch import nn
 
-class ActivationReg(ML_Element, register=False):
+class Activation(ML_Element, register=False):
     registry = Registry(
         relu = nn.ReLU,
         sig = nn.Sigmoid,

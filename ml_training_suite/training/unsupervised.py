@@ -9,7 +9,7 @@ from typing import (
 )
 from pathlib import Path
 
-class FeatureReductionForTraining(TrainingScript):
+class FeatureReductionTraining(TrainingScript):
     def __init__(
             self,
             dataset:Union[str, Type[Dataset]] = None,

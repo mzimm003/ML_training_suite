@@ -15,7 +15,8 @@ from typing import (
     Tuple,
     List,
     Callable,
-    Iterable
+    Iterable,
+    Any
 )
 from pathlib import Path
 import math
@@ -162,14 +163,13 @@ class Dataset(DatasetTorch, ML_Element, register=False):
     def getName(self):
         return self.__class__.__name__
     
-    def __setattr__(self, name: str, value: np.Any) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         #TODO implement to automatically convert dict and list attributes to
         # necessary split value and offset attributes stored as numpy arrays by
         # utility funtions below.
         if type(value) in [list, dict]:
             value = MemSafeAttr(value)
         super().__setattr__(name, value)
-
 
 class Subset(SubsetTorch):
     dataset:Dataset
