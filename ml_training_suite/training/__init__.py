@@ -4,9 +4,15 @@ from .base import (
     TrainingManager,
     Trainer,
     ray_trainable_wrap,
-    )
-from .control import (
     Criterion,
     Optimizer,
     LRScheduler
     )
+# from .control import (
+#     Criterion,
+#     Optimizer,
+#     LRScheduler
+#     )
+from . import supervised
+from . import unsupervised
+from . import reinforcement

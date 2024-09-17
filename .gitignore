@@ -1,4 +1,5 @@
 test.py
+testsetup.py
 .vscode
 __pycache__
 pyproject copy.toml

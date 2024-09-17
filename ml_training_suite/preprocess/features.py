@@ -1,4 +1,4 @@
-from preprocess import PreProcess, Select
+from ml_training_suite.preprocess import PreProcess, Select
 
 from torch import nn
 import numpy as np
