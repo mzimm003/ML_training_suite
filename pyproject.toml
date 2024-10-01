@@ -19,11 +19,11 @@ ray = [
 skl2onnx = "*"
 onnxruntime-gpu = {version = "^1.18.1", source = "onnxruntime-gpu-src"}
 
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [[tool.poetry.source]]
 name = "onnxruntime-gpu-src"
 url = "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/"
 priority = "explicit"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
