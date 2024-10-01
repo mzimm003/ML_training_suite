@@ -13,7 +13,9 @@ scikit-learn = "*"
 pandas = "*"
 numpy = "*"
 torch = "*"
-ray = {version="*", extras=["tune"]}
+ray = [
+    {version="<2.11", extras=["tune"], python="<3.9"},
+    {version="*", extras=["tune"], python=">=3.9"}]
 skl2onnx = "*"
 onnxruntime-gpu = {version = "^1.18.1", source = "onnxruntime-gpu-src"}
 
