@@ -5,24 +5,25 @@ description = ""
 authors = ["Mark Zimmerman <mzimm003@gmail.com>"]
 readme = "README.md"
 
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "*"
+onnx = "*"
+onnxruntime = "*"
+onnxruntime-gpu = {version = "^1.18.1", source = "onnxruntime-gpu-src"}
+pandas = "*"
+pettingzoo = "*"
+ray = [
+    {version="<2.11", extras=["tune"], python="<3.9"},
+    {version="*", extras=["tune"], python=">=3.9"}]
+scikit-learn = "*"
+skl2onnx = "*"
+torch = "*"
+
 [[tool.poetry.source]]
 name = "onnxruntime-gpu-src"
 url = "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/"
 priority = "explicit"
-
-[tool.poetry.dependencies]
-python = "^3.8"
-onnx = "*"
-onnxruntime = "*"
-scikit-learn = "*"
-pandas = "*"
-numpy = "*"
-torch = "*"
-ray = [
-    {version="<2.11", extras=["tune"], python="<3.9"},
-    {version="*", extras=["tune"], python=">=3.9"}]
-skl2onnx = "*"
-onnxruntime-gpu = {version = "^1.18.1", source = "onnxruntime-gpu-src"}
 
 [build-system]
 requires = ["poetry-core"]
