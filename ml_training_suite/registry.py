@@ -6,7 +6,7 @@ from typing import (
 )
 
 T = TypeVar("T")
-IterOptional:TypeAlias = Union[T, List[T]]
+IterOptional = Union[T, List[T]]
 
 class Registry:
     def __init__(self, *args, **kwargs):
