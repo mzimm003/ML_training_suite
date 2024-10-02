@@ -1,5 +1,7 @@
 from ml_training_suite.registry import Registry, IncludeRegistry
 
+from typing import Union
+
 class ML_Element(metaclass=IncludeRegistry):
     registry:Registry
 
