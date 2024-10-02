@@ -9,7 +9,7 @@ class ML_Element(metaclass=IncludeRegistry):
             cls.registry.register(cls, **kwargs)
 
     @classmethod
-    def initialize(cls, obj:type|str=None, config:dict=None):
+    def initialize(cls, obj:Union[type,str]=None, config:dict=None):
         if config is None:
             config = {}
         if obj is None:

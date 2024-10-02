@@ -29,7 +29,7 @@ class SupervisedTraining(TrainingScript):
             dataset_kwargs:dict[str, Any] = None,
             pipelines:IterOptional[list[tuple[str, Callable]]] = None,
             trainer_class:Type[Trainer] = None,
-            models:IterOptional[str | Model] = None,
+            models:IterOptional[Union[str, Model]] = None,
             models_kwargs:IterOptional[dict[str, Any]] = None,
             optimizers:IterOptional[Type[Optimizer]]= None,
             optimizers_kwargs:IterOptional[dict[str, Any]] = None,

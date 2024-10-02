@@ -1,6 +1,8 @@
 from torch import nn
 import pandas as pd
 
+from typing import Union
+
 class PreProcess(nn.Module):
     def __init__(
             self,
@@ -44,7 +46,7 @@ class Select(nn.Module):
         self.do_not_include = do_not_include
         self.exclude_uninformative = exclude_uninformative
     
-    def forward(self, x:pd.DataFrame | pd.Series):
+    def forward(self, x:Union[pd.DataFrame, pd.Series]):
         if self.do_not_include:
             return None
         else:

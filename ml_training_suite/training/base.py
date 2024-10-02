@@ -112,7 +112,7 @@ class LRSchedulerReg:
             item in self._batch_based_registry
         )   
 
-    def initialize(self, obj:type|str, config:dict):
+    def initialize(self, obj:Union[type,str], config:dict):
         if isinstance(obj, str):
             obj = getattr(self, obj)
         return obj(**config)
@@ -162,7 +162,7 @@ def ray_trainable_wrap(
         def step(self):
             return self.script.run()
         @override
-        def save_checkpoint(self, checkpoint_dir: str) -> dict | None:
+        def save_checkpoint(self, checkpoint_dir: str) -> Union[dict, None]:
             for i, (mod, data_samp) in enumerate(self.script.get_models_for_onnx_save()):
                 self.script.save_model(mod, data_samp, i, save_dir=checkpoint_dir)
     return tune.with_resources(TrainableWrapper, resources={"CPU":num_cpus, "GPU":num_gpus})
@@ -380,7 +380,7 @@ class TrainingManager:
 class TrainingScript(ML_Element, register=False):
     registry = Registry()
     data: type[Dataset]
-    save_path: str | Path
+    save_path: Union[str, Path]
     training_manager: 'TrainingManager'
     callback:Callback
 
