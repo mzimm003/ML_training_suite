@@ -36,7 +36,7 @@ class Registry:
     def __contains__(self, item):
         return item in self._registry
 
-    def initialize(self, obj:type|str, config:dict):
+    def initialize(self, obj:Union[type, str], config:dict):
         if isinstance(obj, str):
             obj = getattr(self, obj)
         return obj(**config)
