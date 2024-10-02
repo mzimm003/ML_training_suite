@@ -77,8 +77,8 @@ class PettingZooEnv(PZE):
 
 #Necessary to avoid instantiating environment outside of worker, causing shared parameters
 #between what should be independent environments.
-def env_creator(env, render_mode=None):
-    env = env(render_mode=render_mode)
+def env_creator(env, **kwargs):
+    env = env(**kwargs)
     return env
 
 class Environment(PettingZooEnv, ML_Element):
