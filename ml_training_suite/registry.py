@@ -1,6 +1,5 @@
 from typing import (
     TypeVar,
-    TypeAlias,
     Union,
     List
 )
