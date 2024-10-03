@@ -83,15 +83,19 @@ def env_creator(env, **kwargs):
 
 class Environment(PettingZooEnv, ML_Element):
     registry = Registry()
+    env:AECEnv
 
     def __init__(
             self,
-            env,
-            render_mode=None) -> None:
-        super().__init__(env_creator(env, render_mode=render_mode))
-        register_env(
-            self.__class__.__name__,
-            lambda config: PettingZooEnv(env_creator(env, render_mode=render_mode)))
+            **kwargs) -> None:
+        super().__init__(env_creator(self.env, **kwargs))
+
+    def __init_subclass__(cls, register_environment=True, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if register_environment:
+            register_env(
+                cls.__name__,
+                lambda **config: cls(env_creator(cls.env, **config)))
     
     @property
     def render_mode(self) -> str:
