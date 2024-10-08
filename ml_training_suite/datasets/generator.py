@@ -5,7 +5,8 @@ from typing import (
     Union,
     List,
     Dict,
-    Literal
+    Literal,
+    Any
 )
 
 from pathlib import Path
@@ -113,7 +114,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
             max_size: int = None,
             filters: List[int] = None,
             compression:Literal["gzip","lzf","szip"] = 'gzip',
-            compession_opts:Dict[str,] = None,
+            compession_opts:Any = None,
             ) -> None:
         """
         Args:
@@ -136,13 +137,15 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     maxshape=(self.max_size, *metadata[DatasetGenerator.SIZE]),
                     dtype=metadata[DatasetGenerator.DTYPE],
                     chunks=(self.chunk_size, *metadata[DatasetGenerator.SIZE]),
-                    compression=self.compression)
+                    compression=self.compression,
+                    compression_opts=self.compression_opts,)
             f.create_dataset(self.FILTER_FLAGS,
                 shape=(self.init_size,),
                 maxshape=(self.max_size,),
                 dtype='uint{}'.format(self.max_filters),
                 chunks=(self.chunk_size,),
-                compression=self.compression)
+                compression=self.compression,
+                compression_opts=self.compression_opts,)
             f.attrs[self.SPACE_AVAILABLE] = self.init_size
             f.attrs[self.CURR_SIZE] = self.init_size
     
@@ -186,7 +189,8 @@ class HDF5DatasetGenerator(DatasetGenerator):
             maxshape=(self.max_size, *metadata[DatasetGenerator.SIZE]),
             dtype=metadata[DatasetGenerator.DTYPE],
             chunks=(self.chunk_size, *metadata[DatasetGenerator.SIZE]),
-            compression=self.compression)
+            compression=self.compression,
+            compression_opts=self.compression_opts,)
 
     def add_data_by_point(self, data_point:dict, filters:List[int]=None):
         with h5py.File(self.database_path, 'r+') as f:
