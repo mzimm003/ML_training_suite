@@ -36,7 +36,7 @@ class OrdinalEncoding(nn.Module):
 class FillNaN(nn.Module):
     def __init__(
             self,
-            selections:list[str] = None,
+            selections:List[str] = None,
             fill_value:Union[int, List[int]] = -1,
             *args,
             **kwargs) -> None:

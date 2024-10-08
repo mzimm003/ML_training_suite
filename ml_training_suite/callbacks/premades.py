@@ -3,6 +3,8 @@ from ml_training_suite.datasets import DataHandler
 
 import numpy as np
 
+from typing import List
+
 class ClassifierTrainingCallback(Callback):
     TRAINING_METRICS = [
         Metric.Loss,
@@ -56,11 +58,11 @@ class ClassifierTrainingCallback(Callback):
         training_manager = script.training_manager
         self.models = range(len(training_manager[0].trainers))
         self.folds = range(len(training_manager))
-        self.training_metrics:list[list[list[Metric]]] = [[[
+        self.training_metrics:List[List[List[Metric]]] = [[[
             met(i, j) for met in ClassifierTrainingCallback.TRAINING_METRICS]
             for i in self.models]
             for j in self.folds]
-        self.validation_metrics:list[list[list[Metric]]] = [[[
+        self.validation_metrics:List[List[List[Metric]]] = [[[
             met(i, j) for met in ClassifierTrainingCallback.VALIDATION_METRICS]
             for i in self.models]
             for j in self.folds]
@@ -142,11 +144,11 @@ class LRRangeTestCallback(Callback):
         training_manager = script.training_manager
         self.models = range(len(training_manager[0].trainers))
         self.folds = range(len(training_manager))
-        self.training_metrics:list[list[list[Metric]]] = [[[
+        self.training_metrics:List[List[List[Metric]]] = [[[
             met(i, j) for met in LRRangeTestCallback.TRAINING_METRICS]
             for i in self.models]
             for j in self.folds]
-        self.validation_metrics:list[list[list[Metric]]] = [[[
+        self.validation_metrics:List[List[List[Metric]]] = [[[
             met(i, j) for met in LRRangeTestCallback.VALIDATION_METRICS]
             for i in self.models]
             for j in self.folds]

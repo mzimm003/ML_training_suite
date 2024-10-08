@@ -239,7 +239,7 @@ class TrainingManager:
         num_splits:int,
         balance_training_set:bool,
         shuffle:bool,
-        trainer_class:type['Trainer'],
+        trainer_class:Type['Trainer'],
         pipelines:IterOptional[List[tuple[str, Callable]]] = None,
         models:IterOptional[Union[str, Type[Model]]] = None,
         models_kwargs:IterOptional[dict[str, Any]] = None,
@@ -380,7 +380,7 @@ class TrainingManager:
 
 class TrainingScript(ML_Element, register=False):
     registry = Registry()
-    data: type[Dataset]
+    data: Type[Dataset]
     save_path: Union[str, Path]
     training_manager: 'TrainingManager'
     callback:Callback

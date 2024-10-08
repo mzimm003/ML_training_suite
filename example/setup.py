@@ -18,7 +18,8 @@ import io
 
 from typing import (
     Union,
-    Any
+    Any,
+    List
 )
 from typing_extensions import override
 from pathlib import Path
@@ -258,7 +259,7 @@ class ClassifierLoss(nn.CrossEntropyLoss, Criterion):
     def forward(
             self,
             input: torch.Tensor,
-            aux_inputs: list[torch.Tensor],
+            aux_inputs: List[torch.Tensor],
             target: torch.Tensor) -> torch.Tensor:
         main_loss = super().forward(input, target)
         aux_loss = 0

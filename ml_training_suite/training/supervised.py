@@ -44,7 +44,7 @@ class SupervisedTraining(TrainingScript):
             batch_size:int = 64,
             shuffle:bool = True,
             num_workers:int = 0,
-            callback:type[Callback] = None,
+            callback:Type[Callback] = None,
             callback_kwargs:dict[str, Any] = None,
             **kwargs) -> None:
         """

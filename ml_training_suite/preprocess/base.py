@@ -1,7 +1,7 @@
 from torch import nn
 import pandas as pd
 
-from typing import Union
+from typing import Union, List
 
 class PreProcess(nn.Module):
     def __init__(
@@ -18,8 +18,8 @@ class PreProcess(nn.Module):
 class Select(nn.Module):
     def __init__(
             self,
-            selections:list[str] = None,
-            exclusions:list[str] = None,
+            selections:List[str] = None,
+            exclusions:List[str] = None,
             do_not_include:bool = False,
             exclude_uninformative:bool = True,
             *args,
