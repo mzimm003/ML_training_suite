@@ -40,7 +40,7 @@ class MemSafeAttr:
     See https://github.com/pytorch/pytorch/issues/13246#issuecomment-905703662 
     for a summary of the issue.
     """
-    def __init__(self, attr:list[str]): #TODO, expand to general lists and dicts
+    def __init__(self, attr:List[str]): #TODO, expand to general lists and dicts
         val, offset = MemSafeAttr.strings_to_mem_safe_val_and_offset(
             attr)
         self.val = val
@@ -177,7 +177,7 @@ class Subset(SubsetTorch):
         return self.dataset.labels[self.indices]
 
 class DataHandlerGenerator:
-    pipeline:list[tuple[str, Callable]]
+    pipeline:List[tuple[str, Callable]]
     def __init__(
             self,
             **inputs):
@@ -209,7 +209,7 @@ class DataHandler:
     output_label:torch.Tensor
     target:torch.Tensor
     last_lr:float
-    pipeline:list[tuple[str, Callable]]
+    pipeline:List[tuple[str, Callable]]
     def __init__(
             self,
             target=None,

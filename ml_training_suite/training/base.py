@@ -20,6 +20,7 @@ from typing import (
     Any,
     Iterable,
     Literal,
+    List
     )
 from typing_extensions import override
 from dataclasses import dataclass
@@ -228,7 +229,7 @@ class Trainer(ML_Element, register=False):
 class TrainSplits:
     train_data:DataLoader
     val_data:DataLoader
-    trainers:list['Trainer']
+    trainers:List['Trainer']
 
 class TrainingManager:
     def __init__(
@@ -239,7 +240,7 @@ class TrainingManager:
         balance_training_set:bool,
         shuffle:bool,
         trainer_class:type['Trainer'],
-        pipelines:IterOptional[list[tuple[str, Callable]]] = None,
+        pipelines:IterOptional[List[tuple[str, Callable]]] = None,
         models:IterOptional[Union[str, Type[Model]]] = None,
         models_kwargs:IterOptional[dict[str, Any]] = None,
         optimizers:IterOptional[Type[Optimizer]]= None,
