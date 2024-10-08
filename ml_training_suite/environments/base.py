@@ -15,6 +15,8 @@ from pettingzoo.utils.wrappers import (
     ClipOutOfBoundsWrapper as PZClipOutOfBoundsWrapper,
 )
 
+from typing import Type
+
 class BaseWrapper(PZBaseWrapper):
     """
     To correct for bug in pettingzoo as of version 1.24.3. Issue is described
@@ -83,7 +85,7 @@ def env_creator(env, **kwargs):
 
 class Environment(PettingZooEnv, ML_Element):
     registry = Registry()
-    env:AECEnv
+    env:Type[AECEnv]
 
     def __init__(
             self,
