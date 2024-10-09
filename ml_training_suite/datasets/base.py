@@ -42,13 +42,13 @@ class MemSafeAttr:
     """
     def __init__(self, attr:List[str]): #TODO, expand to general lists and dicts
         self.dtype = type(next(iter(attr)))
-        val, offset = MemSafeAttr.to_mem_safe_val_and_offset(
+        val, offset = self.to_mem_safe_val_and_offset(
             attr=attr)
         self.val = val
         self.offset = offset
 
     def __getitem__(self, key:int):
-        return MemSafeAttr.mem_safe_val_and_offset_to(
+        return self.mem_safe_val_and_offset_to(
             self.val,
             self.offset,
             key
