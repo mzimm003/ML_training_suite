@@ -177,7 +177,7 @@ class Subset(SubsetTorch):
         return self.dataset.labels[self.indices]
 
 class DataHandlerGenerator:
-    pipeline:List[tuple[str, Callable]]
+    pipeline:List[Tuple[str, Callable]]
     def __init__(
             self,
             **inputs):
@@ -205,11 +205,11 @@ class DataHandlerGenerator:
 class DataHandler:
     loss:torch.Tensor
     output:torch.Tensor
-    aux_output:Union[tuple[torch.Tensor],None]
+    aux_output:Union[Tuple[torch.Tensor],None]
     output_label:torch.Tensor
     target:torch.Tensor
     last_lr:float
-    pipeline:List[tuple[str, Callable]]
+    pipeline:List[Tuple[str, Callable]]
     def __init__(
             self,
             target=None,

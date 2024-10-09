@@ -20,7 +20,8 @@ from typing import (
     Any,
     Iterable,
     Literal,
-    List
+    List,
+    Tuple
     )
 from typing_extensions import override
 from dataclasses import dataclass
@@ -240,7 +241,7 @@ class TrainingManager:
         balance_training_set:bool,
         shuffle:bool,
         trainer_class:Type['Trainer'],
-        pipelines:IterOptional[List[tuple[str, Callable]]] = None,
+        pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
         models:IterOptional[Union[str, Type[Model]]] = None,
         models_kwargs:IterOptional[dict[str, Any]] = None,
         optimizers:IterOptional[Type[Optimizer]]= None,
