@@ -231,7 +231,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
             filters:List[List[Union[int,enum.Enum]]]=None):
         batch_len = len(next(iter(data_batch.values())))
         with h5py.File(self.database_path, 'r+') as f:
-            while f.attrs[self.SPACE_AVAILABLE] <= batch_len:
+            while f.attrs[self.SPACE_AVAILABLE] < batch_len:
                 self.resize_database(f)
 
             index_start = f.attrs[self.CURR_SIZE] - f.attrs[self.SPACE_AVAILABLE]
