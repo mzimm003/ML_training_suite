@@ -42,6 +42,7 @@ class DatasetGenerator(ML_Element, register=False):
         self.chunk_size = chunk_size
         self.max_size = max_size
         self.resize_step = resize_step
+        self.filters = [] if filters is None else filters
         self.filters = {k: 1 << k for k in filters}
         self.max_filters = 32 if len(self.filters) <= 32 else 64
         if not self.resize_step is None:
