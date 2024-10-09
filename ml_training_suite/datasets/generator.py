@@ -191,7 +191,9 @@ class HDF5DatasetGenerator(DatasetGenerator):
 
         with h5py.File(src_file, 'r') as src, \
              h5py.File(dst_file, 'w') as dst:
-            for name, item in src.items():
+            for key, value in src.attrs.items():
+                dst.attrs[key] = value
+            for name in src.keys():
                 src.copy(name, dst)
         src_file.unlink()
         dst_file.rename(src_file)
