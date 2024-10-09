@@ -174,8 +174,8 @@ class HDF5DatasetGenerator(DatasetGenerator):
         with h5py.File(src_file, 'r+') as f:
             self.resize_database(f, final=True)
 
-        with (h5py.File(src_file, 'r') as src,
-              h5py.File(dst_file, 'w') as dst):
+        with h5py.File(src_file, 'r') as src, \
+             h5py.File(dst_file, 'w') as dst:
                 src.copy(src, dst)
         src_file.unlink()
         dst_file.rename(src_file)
