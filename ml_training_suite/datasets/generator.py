@@ -210,7 +210,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
     def add_data_by_point(
             self,
             data_point:dict,
-            filters:List[Union[int,enum.Enum]]=None):
+            filters:Dict[Union[int,enum.Enum],bool]=None):
         with h5py.File(self.database_path, 'r+') as f:
             if f.attrs[self.SPACE_AVAILABLE] == 0:
                 self.resize_database(f)
@@ -221,14 +221,14 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     self.retro_add_feature(f, key, value)
                 f[key][index] = value
             key = self.FILTER_FLAGS
-            value = sum(self.filters[int(k)] for k in filters)
+            value = sum(self.filters[key]*filt for key, filt in filters.items())
             f[key][index] = value
             f.attrs[self.SPACE_AVAILABLE] -= 1
 
     def add_data_by_batch(
             self,
             data_batch:dict,
-            filters:List[List[Union[int,enum.Enum]]]=None):
+            filters:Dict[Union[int,enum.Enum],List[bool]]=None):
         batch_len = len(next(iter(data_batch.values())))
         with h5py.File(self.database_path, 'r+') as f:
             while f.attrs[self.SPACE_AVAILABLE] < batch_len:
@@ -241,7 +241,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     self.retro_add_feature(f, key, value[0])
                 f[key][index_slice] = value
             key = self.FILTER_FLAGS
-            value = [sum(self.filters[int(k)] for k in filt) for filt in filters]
+            value = sum(self.filters[key]*np.array(filt) for key, filt in filters.items())
             f[key][index_slice] = value
             f.attrs[self.SPACE_AVAILABLE] -= batch_len
 
