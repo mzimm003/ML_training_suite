@@ -191,9 +191,33 @@ class HDF5DatasetGenerator(DatasetGenerator):
 
         with h5py.File(src_file, 'r') as src, \
              h5py.File(dst_file, 'w') as dst:
-                src.copy(src, dst)
+            for name, item in src.items():
+                src.copy(name, dst)
         src_file.unlink()
         dst_file.rename(src_file)
+
+    # def copy_attributes(self, source:h5py.Group, destination:h5py.Group):
+    #     for key, value in source.attrs.items():
+    #         destination.attrs[key] = value
+
+    # def recursive_copy(self, source_group:h5py.Group, destination_group:h5py.Group):
+    #     # Copy attributes of the current group
+    #     self.copy_attributes(source_group, destination_group)
+
+    #     # Iterate through all items in the source group
+    #     for name, item in source_group.items():
+    #         if isinstance(item, h5py.Group):
+    #             # Create group in destination and recurse
+    #             new_group = destination_group.create_group(name)
+    #             self.recursive_copy(item, new_group)
+    #         elif isinstance(item, h5py.Dataset):
+    #             # Copy dataset
+    #             data = item[()]
+    #             new_dataset = destination_group.create_dataset(name, data=data, chunks=item.chunks, 
+    #                                                         compression=item.compression, 
+    #                                                         compression_opts=item.compression_opts)
+    #             # Copy dataset attributes
+    #             copy_attributes(item, new_dataset)
 
     def retro_add_feature(self, db:h5py.File, key:str, value):
         self.add_metadata_entry(key, value)
