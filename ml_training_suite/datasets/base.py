@@ -20,6 +20,7 @@ from typing import (
 )
 from pathlib import Path
 import math
+import numbers
 
 class MemSafeAttr:
     """
@@ -58,22 +59,24 @@ class MemSafeAttr:
         """
         Utility function.
         """
+        method_type = self.dtype
+        if issubclass(method_type, numbers.Number):
+            method_type = numbers.Number
         return {
             str:MemSafeAttr.strings_to_mem_safe_val_and_offset,
-            int:MemSafeAttr.num_to_mem_safe_val_and_offset,
-            float:MemSafeAttr.num_to_mem_safe_val_and_offset,
-            bool:MemSafeAttr.num_to_mem_safe_val_and_offset,
+            numbers.Number:MemSafeAttr.num_to_mem_safe_val_and_offset,
         }[self.dtype](attr)
 
     def mem_safe_val_and_offset_to(self, v, o, index:int) -> Tuple[np.ndarray,np.ndarray]:
         """
         Utility function.
         """
+        method_type = self.dtype
+        if issubclass(method_type, numbers.Number):
+            method_type = numbers.Number
         return {
             str:MemSafeAttr.mem_safe_val_and_offset_to_string,
-            int:MemSafeAttr.mem_safe_val_and_offset_to_num,
-            float:MemSafeAttr.mem_safe_val_and_offset_to_num,
-            bool:MemSafeAttr.mem_safe_val_and_offset_to_num,
+            numbers.Number:MemSafeAttr.mem_safe_val_and_offset_to_num,
         }[self.dtype](v, o, index)
 
     # --- UTILITY FUNCTIONS ---    
