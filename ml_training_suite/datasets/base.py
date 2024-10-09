@@ -41,19 +41,58 @@ class MemSafeAttr:
     for a summary of the issue.
     """
     def __init__(self, attr:List[str]): #TODO, expand to general lists and dicts
-        val, offset = MemSafeAttr.strings_to_mem_safe_val_and_offset(
-            attr)
+        self.dtype = type(next(iter(attr)))
+        val, offset = MemSafeAttr.to_mem_safe_val_and_offset(
+            attr=attr)
         self.val = val
         self.offset = offset
 
     def __getitem__(self, key:int):
-        return MemSafeAttr.mem_safe_val_and_offset_to_string(
+        return MemSafeAttr.mem_safe_val_and_offset_to(
             self.val,
             self.offset,
             key
         )
 
-    # --- UTILITY FUNCTIONS ---
+    def to_mem_safe_val_and_offset(self, attr: List[Union[str,int]]) -> Tuple[np.ndarray,np.ndarray]:
+        """
+        Utility function.
+        """
+        return {
+            str:MemSafeAttr.strings_to_mem_safe_val_and_offset,
+            int:MemSafeAttr.num_to_mem_safe_val_and_offset,
+            float:MemSafeAttr.num_to_mem_safe_val_and_offset,
+            bool:MemSafeAttr.num_to_mem_safe_val_and_offset,
+        }[self.dtype](attr)
+
+    def mem_safe_val_and_offset_to(self, v, o, index:int) -> Tuple[np.ndarray,np.ndarray]:
+        """
+        Utility function.
+        """
+        return {
+            str:MemSafeAttr.mem_safe_val_and_offset_to_string,
+            int:MemSafeAttr.mem_safe_val_and_offset_to_num,
+            float:MemSafeAttr.mem_safe_val_and_offset_to_num,
+            bool:MemSafeAttr.mem_safe_val_and_offset_to_num,
+        }[self.dtype](v, o, index)
+
+    # --- UTILITY FUNCTIONS ---    
+    @staticmethod
+    def num_to_mem_safe_val_and_offset(ints: List[str]) -> Tuple[np.ndarray,np.ndarray]:
+        """
+        Utility function.
+        """
+        val = np.array(ints)
+        offset = None
+        return val, offset
+    
+    @staticmethod
+    def mem_safe_val_and_offset_to_num(v, o, index:int) -> Tuple[np.ndarray,np.ndarray]:
+        '''
+        Utility function.
+        '''
+        return v[index]
+    
     @staticmethod
     def strings_to_mem_safe_val_and_offset(strings: List[str]) -> Tuple[np.ndarray,np.ndarray]:
         """
@@ -66,13 +105,7 @@ class MemSafeAttr:
     def mem_safe_val_and_offset_to_string(v, o, index:int) -> Tuple[np.ndarray,np.ndarray]:
         '''
         Utility function.
-
-        In case labels represented by file_idx are no longer in memory, use arbitrary index from existing file.
-        Either the current idx, or 0 if current index is beyond existing labels. This will be rare, and impact a
-        small fraction of a percent of data points, and otherwise still supplies a valid data point. Bandaid necessary
-        to allow multiprocessing of a partitioned dataset.
         '''
-        index = index if index < len(o) else 0
         seq = MemSafeAttr.unpack_sequence(v, o, index)
         return MemSafeAttr.sequence_to_string(seq)
     
