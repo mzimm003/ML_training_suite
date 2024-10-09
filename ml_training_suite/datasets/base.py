@@ -201,7 +201,8 @@ class Dataset(DatasetTorch, ML_Element, register=False):
         # necessary split value and offset attributes stored as numpy arrays by
         # utility funtions below.
         if type(value) in [list, dict]:
-            value = MemSafeAttr(value)
+            if not value in [[],{}]:
+                value = MemSafeAttr(value)
         super().__setattr__(name, value)
 
 class Subset(SubsetTorch):
