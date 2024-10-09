@@ -65,7 +65,7 @@ class MemSafeAttr:
         return {
             str:MemSafeAttr.strings_to_mem_safe_val_and_offset,
             numbers.Number:MemSafeAttr.num_to_mem_safe_val_and_offset,
-        }[self.dtype](attr)
+        }[method_type](attr)
 
     def mem_safe_val_and_offset_to(self, v, o, index:int) -> Tuple[np.ndarray,np.ndarray]:
         """
@@ -77,7 +77,7 @@ class MemSafeAttr:
         return {
             str:MemSafeAttr.mem_safe_val_and_offset_to_string,
             numbers.Number:MemSafeAttr.mem_safe_val_and_offset_to_num,
-        }[self.dtype](v, o, index)
+        }[method_type](v, o, index)
 
     # --- UTILITY FUNCTIONS ---    
     @staticmethod
