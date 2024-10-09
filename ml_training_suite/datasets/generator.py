@@ -55,8 +55,11 @@ class DatasetGenerator(ML_Element, register=False):
         self.metadata[key][DatasetGenerator.DTYPE] = dtype
 
     def add_metadata_entry(self, k, v):
+        dtype = np.array(v).dtype
+        if 'U' in dtype:
+            dtype = h5py.string_dtype()
         self.metadata[k] = {
-            DatasetGenerator.DTYPE:np.array(v).dtype,
+            DatasetGenerator.DTYPE:dtype,
             DatasetGenerator.SIZE:np.array(v).shape}
         
     def map_dict_sample(self, sample:dict):
