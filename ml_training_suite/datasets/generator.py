@@ -56,7 +56,7 @@ class DatasetGenerator(ML_Element, register=False):
 
     def add_metadata_entry(self, k, v):
         dtype = np.array(v).dtype
-        if 'U' in dtype:
+        if 'U' in str(dtype):
             dtype = h5py.string_dtype()
         self.metadata[k] = {
             DatasetGenerator.DTYPE:dtype,
