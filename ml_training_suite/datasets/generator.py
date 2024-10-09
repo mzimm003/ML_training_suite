@@ -10,6 +10,7 @@ from typing import (
 )
 
 from pathlib import Path
+import enum
 
 import pandas as pd
 import numpy as np
@@ -28,7 +29,7 @@ class DatasetGenerator(ML_Element, register=False):
             chunk_size:int=None,
             max_size:int=None,
             resize_step:int=None,
-            filters:List[int]=None,
+            filters:List[Union[int,enum.Enum]]=None,
             ) -> None:
         """
         Args:
@@ -42,8 +43,10 @@ class DatasetGenerator(ML_Element, register=False):
         self.chunk_size = chunk_size
         self.max_size = max_size
         self.resize_step = resize_step
-        self.filters = [] if filters is None else filters
+
+        self.filters = [] if filters is None else [int(f) for f in filters]
         self.filters = {k: 1 << k for k in self.filters}
+
         self.max_filters = 32 if len(self.filters) <= 32 else 64
         if not self.resize_step is None:
             assert self.resize_step % self.chunk_size == 0
@@ -64,7 +67,8 @@ class DatasetGenerator(ML_Element, register=False):
         
     def map_dict_sample(self, sample:dict):
         for k, v in sample.items():
-            self.add_metadata_entry(k,v)
+            if not k in self.filters:
+                self.add_metadata_entry(k,v)
 
     def map_list_sample(self, sample:list):
         raise NotImplementedError
@@ -116,7 +120,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
             init_size: int,
             chunk_size: int = None,
             max_size: int = None,
-            filters: List[int] = None,
+            filters: List[Union[int,enum.Enum]] = None,
             compression:Literal["gzip","lzf","szip"] = 'gzip',
             compession_opts:Any = None,
             ) -> None:
@@ -196,7 +200,10 @@ class HDF5DatasetGenerator(DatasetGenerator):
             compression=self.compression,
             compression_opts=self.compression_opts,)
 
-    def add_data_by_point(self, data_point:dict, filters:List[int]=None):
+    def add_data_by_point(
+            self,
+            data_point:dict,
+            filters:List[Union[int,enum.Enum]]=None):
         with h5py.File(self.database_path, 'r+') as f:
             if f.attrs[self.SPACE_AVAILABLE] == 0:
                 self.resize_database(f)
@@ -207,11 +214,14 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     self.retro_add_feature(f, key, value)
                 f[key][index] = value
             key = self.FILTER_FLAGS
-            value = sum(self.filters[k] for k in filters)
+            value = sum(self.filters[int(k)] for k in filters)
             f[key][index] = value
             f.attrs[self.SPACE_AVAILABLE] -= 1
 
-    def add_data_by_batch(self, data_batch:dict, filters:List[List[int]]=None):
+    def add_data_by_batch(
+            self,
+            data_batch:dict,
+            filters:List[List[Union[int,enum.Enum]]]=None):
         batch_len = len(next(iter(data_batch.values())))
         with h5py.File(self.database_path, 'r+') as f:
             while f.attrs[self.SPACE_AVAILABLE] <= batch_len:
@@ -224,7 +234,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     self.retro_add_feature(f, key, value[0])
                 f[key][index_slice] = value
             key = self.FILTER_FLAGS
-            value = [sum(self.filters[k] for k in filt) for filt in filters]
+            value = [sum(self.filters[int(k)] for k in filt) for filt in filters]
             f[key][index_slice] = value
             f.attrs[self.SPACE_AVAILABLE] -= batch_len
 
