@@ -120,6 +120,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
             init_size: int,
             chunk_size: int = None,
             max_size: int = None,
+            resize_step:int=None,
             filters: List[Union[int,enum.Enum]] = None,
             compression:Literal["gzip","lzf","szip"] = 'gzip',
             compession_opts:Any = None,
@@ -128,7 +129,13 @@ class HDF5DatasetGenerator(DatasetGenerator):
         Args:
             compression: lossless compression filter.
         """
-        super().__init__(dir, init_size, chunk_size, max_size, filters)
+        super().__init__(
+            dir=dir,
+            init_size=init_size,
+            chunk_size=chunk_size,
+            max_size=max_size,
+            resize_step=resize_step,
+            filters=filters)
         self.compression = compression
         self.compression_opts = compession_opts
         self.database_path = self.database_path.with_name(
