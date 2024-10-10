@@ -1,4 +1,4 @@
-from ml_training_suite.base import ML_Element
+from ml_training_suite.base import ML_Element, Config
 from ml_training_suite.registry import Registry
 
 from typing import (
@@ -25,6 +25,9 @@ import gymnasium as gym
 
 from ray.rllib.utils.typing import ModelConfigDict
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+
+class ModelConfig(Config):
+    pass
 
 class Model(nn.Module, ML_Element, register=False):
     registry = Registry()
@@ -169,6 +172,9 @@ class Model(nn.Module, ML_Element, register=False):
                 slf.model.run_with_iobinding(slf.binding)
                 return outs
         return Mdl()
+
+class ModelRLLIBConfig(ModelConfig):
+    pass
 
 class ModelRLLIB(TorchModelV2, Model, register=False):
     registry = Registry()
