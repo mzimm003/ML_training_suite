@@ -26,10 +26,6 @@ import gymnasium as gym
 from ray.rllib.utils.typing import ModelConfigDict
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 
-class ModelConfig(ML_Element, register=False):
-    def asDict(self):
-        return self.__dict__
-
 class Model(nn.Module, ML_Element, register=False):
     registry = Registry()
 
