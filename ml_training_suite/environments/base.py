@@ -90,7 +90,7 @@ class Environment(PettingZooEnv, ML_Element):
     def __init__(
             self,
             **kwargs) -> None:
-        super().__init__(env_creator(self.env, **kwargs))
+        super().__init__(env_creator(self.env.__func__, **kwargs))
 
     def __init_subclass__(cls, register_environment=True, **kwargs):
         super().__init_subclass__(**kwargs)
