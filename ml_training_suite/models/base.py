@@ -67,14 +67,14 @@ class Model(nn.Module, ML_Element, register=False):
         Example:
             ::
 
-            def _sliced_and_indexed_body(self):
+            def _item_slicing_and_indexing(self):
                 return torch.nn.Sequential(
                     self.model_preprocess,
                     self.model_body[key],
                     self.model_postprocess)
         """
         raise NotImplementedError((
-            "_sliced_and_indexed_body must be overridden for {}"
+            "_item_slicing_and_indexing must be overridden for {}"
             " to specify model indexing and slicing behavior.")
             .format(self))
     
