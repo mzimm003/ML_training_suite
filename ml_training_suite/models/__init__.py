@@ -4,5 +4,7 @@ from .base import (
     ModelRLLIB,
     ModelRLLIBConfig,
     FeatureReducer,
+    Policy,
+    PolicyConfig
 )
 from .elements import Activation
