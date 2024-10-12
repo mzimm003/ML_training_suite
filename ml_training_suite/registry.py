@@ -44,7 +44,8 @@ class Registry:
 
 class IncludeRegistry(type):
     def __getattr__(cls, name):
-        if name not in cls.__dict__:
+        if (name not in cls.__dict__
+            and "registry" in cls.__dict__):
             return getattr(cls.registry, name)
         else:
             return super().__getattr__(cls, name)

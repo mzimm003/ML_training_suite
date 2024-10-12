@@ -14,8 +14,8 @@ onnxruntime-gpu = {version = "^1.18.1", source = "onnxruntime-gpu-src"}
 pandas = "*"
 pettingzoo = "*"
 ray = [
-    {version="<2.11", extras=["tune"], python="<3.9"},
-    {version="*", extras=["tune"], python=">=3.9"}]
+    {version="<2.11", extras=["tune","rllib"], python="<3.9"},
+    {version="*", extras=["tune","rllib"], python=">=3.9"}]
 scikit-learn = "*"
 skl2onnx = "*"
 torch = "*"

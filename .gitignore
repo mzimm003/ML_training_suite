@@ -4,3 +4,4 @@ testsetup.py
 __pycache__
 pyproject copy.toml
 models/
+junk.py
