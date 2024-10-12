@@ -1,5 +1,5 @@
 from ml_training_suite.base import ML_Element, Config
-from ml_training_suite.registry import Registry
+from ml_training_suite.registry import Registry, IncludeRegistryABC
 
 from typing import (
     Any,
@@ -205,10 +205,11 @@ class FeatureReducer(ML_Element, register=False):
     )
 
 
+
 class PolicyConfig(Config):
     pass
 
-class Policy(TorchPolicyV2, ML_Element, register=False):
+class Policy(TorchPolicyV2, ML_Element, metaclass=IncludeRegistryABC, register=False):
     registry = Registry()
 
     def __init_subclass__(cls, register=True, **kwargs):

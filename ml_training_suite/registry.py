@@ -3,6 +3,7 @@ from typing import (
     Union,
     List
 )
+import abc
 
 T = TypeVar("T")
 IterOptional = Union[T, List[T]]
@@ -47,3 +48,6 @@ class IncludeRegistry(type):
             return getattr(cls.registry, name)
         else:
             return super().__getattr__(cls, name)
+
+class IncludeRegistryABC(IncludeRegistry, abc.ABCMeta):
+    pass
