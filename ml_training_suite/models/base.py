@@ -25,6 +25,7 @@ import gymnasium as gym
 
 from ray.rllib.utils.typing import ModelConfigDict
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+from ray.rllib.policy.torch_policy_v2 import TorchPolicyV2
 
 class ModelConfig(Config):
     pass
@@ -202,3 +203,28 @@ class FeatureReducer(ML_Element, register=False):
         PCA = PCA,
         ICA = FastICA,
     )
+
+
+class PolicyConfig(Config):
+    pass
+
+class Policy(TorchPolicyV2, ML_Element, register=False):
+    registry = Registry()
+
+    def __init_subclass__(cls, register=True, **kwargs):
+        """Due to the following error: "WARNING policy.py:137 -- Can not figure out a
+        durable policy name for <class 'my_chess.learner.policies.ppo.PPOPolicy'>.
+        You are probably trying to checkpoint a custom policy. Raw policy class may cause
+        problems when the checkpoint needs to be loaded in the future. To fix this, make
+        sure you add your custom policy in rllib.algorithms.registry.POLICIES." We provide:"""
+        import sys
+        import ray.rllib.algorithms
+
+        class_path = '/'.join(sys.modules[cls.__module__].__file__.split('/')[:-1])               
+        if not class_path in ray.rllib.algorithms.__path__:
+            ray.rllib.algorithms.__path__.append(class_path)
+
+        from ray.rllib.algorithms.registry import POLICIES
+        POLICIES[cls.__name__] = cls.__module__.split('.')[-1]
+
+        return super().__init_subclass__(register, **kwargs)
