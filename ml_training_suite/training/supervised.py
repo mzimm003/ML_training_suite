@@ -16,7 +16,8 @@ from typing import (
     Any,
     Callable,
     List,
-    Tuple
+    Tuple,
+    Dict
 )
 from pathlib import Path
 
@@ -28,17 +29,17 @@ class SupervisedTraining(TrainingScript):
     def __init__(
             self,
             dataset:Union[str, Type[Dataset]] = None,
-            dataset_kwargs:dict[str, Any] = None,
+            dataset_kwargs:Dict[str, Any] = None,
             pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
             trainer_class:Type[Trainer] = None,
             models:IterOptional[Union[str, Model]] = None,
-            models_kwargs:IterOptional[dict[str, Any]] = None,
+            models_kwargs:IterOptional[Dict[str, Any]] = None,
             optimizers:IterOptional[Type[Optimizer]]= None,
-            optimizers_kwargs:IterOptional[dict[str, Any]] = None,
+            optimizers_kwargs:IterOptional[Dict[str, Any]] = None,
             lr_schedulers:IterOptional[Type[LRScheduler]]= None,
-            lr_schedulers_kwargs:IterOptional[dict[str, Any]] = None,
+            lr_schedulers_kwargs:IterOptional[Dict[str, Any]] = None,
             criterion:Union[Type[Criterion], Type[torch.nn.modules.loss._Loss]] = None,
-            criterion_kwargs:dict[str, Any] = None,
+            criterion_kwargs:Dict[str, Any] = None,
             save_path:Union[str, Path] = None,
             balance_training_set = False,
             k_fold_splits:int = 4,
@@ -46,7 +47,7 @@ class SupervisedTraining(TrainingScript):
             shuffle:bool = True,
             num_workers:int = 0,
             callback:Type[Callback] = None,
-            callback_kwargs:dict[str, Any] = None,
+            callback_kwargs:Dict[str, Any] = None,
             **kwargs) -> None:
         """
         Args:

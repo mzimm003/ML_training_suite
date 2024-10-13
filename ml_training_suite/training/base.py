@@ -21,7 +21,8 @@ from typing import (
     Iterable,
     Literal,
     List,
-    Tuple
+    Tuple,
+    Dict
     )
 from typing_extensions import override
 from dataclasses import dataclass
@@ -243,13 +244,13 @@ class TrainingManager:
         trainer_class:Type['Trainer'],
         pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
         models:IterOptional[Union[str, Type[Model]]] = None,
-        models_kwargs:IterOptional[dict[str, Any]] = None,
+        models_kwargs:IterOptional[Dict[str, Any]] = None,
         optimizers:IterOptional[Type[Optimizer]]= None,
-        optimizers_kwargs:IterOptional[dict[str, Any]] = None,
+        optimizers_kwargs:IterOptional[Dict[str, Any]] = None,
         lr_schedulers:IterOptional[Type[LRScheduler]]= None,
-        lr_schedulers_kwargs:IterOptional[dict[str, Any]] = None,
+        lr_schedulers_kwargs:IterOptional[Dict[str, Any]] = None,
         criterion:Union[Criterion, Type[torch.nn.modules.loss._Loss]]= None,
-        criterion_kwargs:dict[str, Any] = None,
+        criterion_kwargs:Dict[str, Any] = None,
         ):
         self.num_splits = num_splits
         self.balance_training_set = balance_training_set
@@ -282,7 +283,7 @@ class TrainingManager:
         self.criterion = Criterion.initialize(
             criterion, criterion_kwargs)
         self.criterion.to(device=self.device)
-        self.splits:dict[int, TrainSplits] = {}
+        self.splits:Dict[int, TrainSplits] = {}
         self.create_splits()
         assert len(self) == 1
         for split in self:

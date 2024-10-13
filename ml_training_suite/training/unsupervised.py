@@ -5,7 +5,8 @@ from ml_training_suite.models import FeatureReducer
 from typing import (
     Type,
     Union,
-    Any
+    Any,
+    Dict
 )
 from pathlib import Path
 
@@ -13,9 +14,9 @@ class FeatureReductionTraining(TrainingScript):
     def __init__(
             self,
             dataset:Union[str, Type[Dataset]] = None,
-            dataset_kwargs:dict[str, Any] = None,
+            dataset_kwargs:Dict[str, Any] = None,
             feature_reducer:Union[str, FeatureReducer] = None,
-            feature_reducer_kwargs:dict[str, Any] = None,
+            feature_reducer_kwargs:Dict[str, Any] = None,
             save_path:Union[str, Path] = None,
             **kwargs) -> None:
         """

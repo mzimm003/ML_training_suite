@@ -19,7 +19,8 @@ import io
 from typing import (
     Union,
     Any,
-    List
+    List,
+    Dict
 )
 from typing_extensions import override
 from pathlib import Path
@@ -169,7 +170,7 @@ class Classifier(Model):
             dim_feedforward:int = 1024,
             norm_first:bool = False,
             activation:Union[str, Activation, nn.Module] = None,
-            activation_kwargs:dict[str, Any] = None,
+            activation_kwargs:Dict[str, Any] = None,
             *args,
             **kwargs) -> None:
         super().__init__(*args, **kwargs)
