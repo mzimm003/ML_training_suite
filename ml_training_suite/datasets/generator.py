@@ -256,20 +256,21 @@ class HDF5DatasetGenerator(DatasetGenerator):
             data_batch:dict,
             filters:Dict[Union[int,enum.Enum],List[bool]]=None):
         batch_len = len(next(iter(data_batch.values())))
-        with h5py.File(self.database_path, 'r+') as f:
-            while f.attrs[self.SPACE_AVAILABLE] < batch_len:
-                self.resize_database(f)
+        if batch_len > 0:
+            with h5py.File(self.database_path, 'r+') as f:
+                while f.attrs[self.SPACE_AVAILABLE] < batch_len:
+                    self.resize_database(f)
 
-            index_start = f.attrs[self.CURR_SIZE] - f.attrs[self.SPACE_AVAILABLE]
-            index_slice = slice(index_start, index_start + batch_len)
-            for key, value in data_batch.items():
-                if not key in f:
-                    self.retro_add_feature(f, key, value[0])
+                index_start = f.attrs[self.CURR_SIZE] - f.attrs[self.SPACE_AVAILABLE]
+                index_slice = slice(index_start, index_start + batch_len)
+                for key, value in data_batch.items():
+                    if not key in f:
+                        self.retro_add_feature(f, key, value[0])
+                    f[key][index_slice] = value
+                key = self.FILTER_FLAGS
+                value = sum(self.filters[key]*np.array(filt) for key, filt in filters.items())
                 f[key][index_slice] = value
-            key = self.FILTER_FLAGS
-            value = sum(self.filters[key]*np.array(filt) for key, filt in filters.items())
-            f[key][index_slice] = value
-            f.attrs[self.SPACE_AVAILABLE] -= batch_len
+                f.attrs[self.SPACE_AVAILABLE] -= batch_len
 
 class PandasDatasetGenerator(DatasetGenerator):
     pass
