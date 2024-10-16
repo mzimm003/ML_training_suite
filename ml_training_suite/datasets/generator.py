@@ -177,13 +177,13 @@ class HDF5DatasetGenerator(DatasetGenerator):
                     chunks=(self.get_chunk_size(key), *metadata[DatasetGenerator.SHAPE]),
                     compression=self.compression,
                     compression_opts=self.compression_opts,)
-            f.create_dataset(self.FILTER_FLAGS,
-                shape=(self.init_size,),
-                maxshape=(self.max_size,),
-                dtype='uint{}'.format(self.max_filters),
-                chunks=(self.get_chunk_size(self.FILTER_FLAGS),),
-                compression=self.compression,
-                compression_opts=self.compression_opts,)
+            # f.create_dataset(self.FILTER_FLAGS,
+            #     shape=(self.init_size,),
+            #     maxshape=(self.max_size,),
+            #     dtype='uint{}'.format(self.max_filters),
+            #     chunks=(self.get_chunk_size(self.FILTER_FLAGS),),
+            #     compression=self.compression,
+            #     compression_opts=self.compression_opts,)
             f.attrs[self.SPACE_AVAILABLE] = self.init_size
             f.attrs[self.CURR_SIZE] = self.init_size
     
