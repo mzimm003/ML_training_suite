@@ -20,7 +20,9 @@ class DatasetGenerator(ML_Element, register=False):
     registry = Registry()
     ROOTNAME = "database"
     DTYPE = "dtype"
+    SHAPE = "shape"
     SIZE = "size"
+    ITEMSIZE = "itemsize"
     FILTER_FLAGS = "filter_flags"
     def __init__(
             self,
@@ -58,12 +60,16 @@ class DatasetGenerator(ML_Element, register=False):
         self.metadata[key][DatasetGenerator.DTYPE] = dtype
 
     def add_metadata_entry(self, k, v):
-        dtype = np.array(v).dtype
+        as_np = np.array(v)
+        dtype = as_np.dtype
+        itemsize = dtype.itemsize
         if 'U' in str(dtype):
             dtype = h5py.string_dtype()
         self.metadata[k] = {
             DatasetGenerator.DTYPE:dtype,
-            DatasetGenerator.SIZE:np.array(v).shape}
+            DatasetGenerator.SHAPE:as_np.shape,
+            DatasetGenerator.SIZE:as_np.size,
+            DatasetGenerator.ITEMSIZE:itemsize,}
         
     def map_dict_sample(self, sample:dict):
         for k, v in sample.items():
@@ -118,7 +124,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
             self,
             dir: Union[str, Path],
             init_size: int,
-            chunk_size: int = None,
+            chunk_size: float = None,
             max_size: int = None,
             resize_step:int=None,
             filters: List[Union[int,enum.Enum]] = None,
@@ -128,6 +134,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
         """
         Args:
             compression: lossless compression filter.
+            chunk_size: Treated as a percentage scale over the range 10KiB-1024KiB.
         """
         super().__init__(
             dir=dir,
@@ -141,6 +148,21 @@ class HDF5DatasetGenerator(DatasetGenerator):
         self.database_path = self.database_path.with_name(
             self.database_path.stem + '.h5')
 
+    def get_chunk_size(self, key):
+        """
+        Calculate chunk size based on h5py's recommended 10KiB to 1 MiB
+
+        Too small of a chunk leads to uncontrolled memory. To avoid this,
+        the chunk size will necessarily be placed within h5py's recommendation.
+        """
+        itemsize = self.metadata[key][DatasetGenerator.ITEMSIZE]
+        num_items = self.metadata[key][DatasetGenerator.SHAPE]
+        data_point_size_bytes = itemsize * num_items
+        data_point_size_KiB = data_point_size_bytes / 1024
+        target_chunk_size_KiB = 10 + (1024-10) * self.chunk_size
+        return int(target_chunk_size_KiB//data_point_size_KiB)
+
+
     def init_database(self):
         if not self.database_path.parent.exists():
             self.database_path.parent.mkdir(parents=True)
@@ -148,17 +170,17 @@ class HDF5DatasetGenerator(DatasetGenerator):
             for key, metadata in self.metadata.items():
                 f.create_dataset(
                     key,
-                    shape=(self.init_size, *metadata[DatasetGenerator.SIZE]),
-                    maxshape=(self.max_size, *metadata[DatasetGenerator.SIZE]),
+                    shape=(self.init_size, *metadata[DatasetGenerator.SHAPE]),
+                    maxshape=(self.max_size, *metadata[DatasetGenerator.SHAPE]),
                     dtype=metadata[DatasetGenerator.DTYPE],
-                    chunks=(self.chunk_size, *metadata[DatasetGenerator.SIZE]),
+                    chunks=(self.get_chunk_size(key), *metadata[DatasetGenerator.SHAPE]),
                     compression=self.compression,
                     compression_opts=self.compression_opts,)
             f.create_dataset(self.FILTER_FLAGS,
                 shape=(self.init_size,),
                 maxshape=(self.max_size,),
                 dtype='uint{}'.format(self.max_filters),
-                chunks=(self.chunk_size,),
+                chunks=(self.get_chunk_size(self.FILTER_FLAGS),),
                 compression=self.compression,
                 compression_opts=self.compression_opts,)
             f.attrs[self.SPACE_AVAILABLE] = self.init_size
@@ -198,38 +220,15 @@ class HDF5DatasetGenerator(DatasetGenerator):
         src_file.unlink()
         dst_file.rename(src_file)
 
-    # def copy_attributes(self, source:h5py.Group, destination:h5py.Group):
-    #     for key, value in source.attrs.items():
-    #         destination.attrs[key] = value
-
-    # def recursive_copy(self, source_group:h5py.Group, destination_group:h5py.Group):
-    #     # Copy attributes of the current group
-    #     self.copy_attributes(source_group, destination_group)
-
-    #     # Iterate through all items in the source group
-    #     for name, item in source_group.items():
-    #         if isinstance(item, h5py.Group):
-    #             # Create group in destination and recurse
-    #             new_group = destination_group.create_group(name)
-    #             self.recursive_copy(item, new_group)
-    #         elif isinstance(item, h5py.Dataset):
-    #             # Copy dataset
-    #             data = item[()]
-    #             new_dataset = destination_group.create_dataset(name, data=data, chunks=item.chunks, 
-    #                                                         compression=item.compression, 
-    #                                                         compression_opts=item.compression_opts)
-    #             # Copy dataset attributes
-    #             copy_attributes(item, new_dataset)
-
     def retro_add_feature(self, db:h5py.File, key:str, value):
         self.add_metadata_entry(key, value)
         metadata = self.metadata[key]
         db.create_dataset(
             key,
-            shape=(db.attrs[self.CURR_SIZE], *metadata[DatasetGenerator.SIZE]),
-            maxshape=(self.max_size, *metadata[DatasetGenerator.SIZE]),
+            shape=(db.attrs[self.CURR_SIZE], *metadata[DatasetGenerator.SHAPE]),
+            maxshape=(self.max_size, *metadata[DatasetGenerator.SHAPE]),
             dtype=metadata[DatasetGenerator.DTYPE],
-            chunks=(self.chunk_size, *metadata[DatasetGenerator.SIZE]),
+            chunks=(self.get_chunk_size(key), *metadata[DatasetGenerator.SHAPE]),
             compression=self.compression,
             compression_opts=self.compression_opts,)
 
