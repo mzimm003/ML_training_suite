@@ -73,6 +73,9 @@ class DatasetGenerator(ML_Element, register=False):
         for k, v in sample.items():
             if not k in self.filters:
                 self.add_metadata_entry(k,v)
+        self.add_metadata_entry(
+            self.FILTER_FLAGS,
+            np.array(0, dtype="uint{}".format(self.max_filters)))
 
     def map_list_sample(self, sample:list):
         raise NotImplementedError
