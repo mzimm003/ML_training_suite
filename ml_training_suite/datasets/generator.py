@@ -154,7 +154,7 @@ class HDF5DatasetGenerator(DatasetGenerator):
         the chunk size will necessarily be placed within h5py's recommendation.
         """
         itemsize = self.metadata[key][DatasetGenerator.ITEMSIZE]
-        num_items = self.metadata[key][DatasetGenerator.SHAPE]
+        num_items = self.metadata[key][DatasetGenerator.SIZE]
         data_point_size_bytes = itemsize * num_items
         data_point_size_KiB = data_point_size_bytes / 1024
         target_chunk_size_KiB = 10 + (1024-10) * self.chunk_size
