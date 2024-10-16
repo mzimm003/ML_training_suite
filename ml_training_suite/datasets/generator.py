@@ -50,8 +50,6 @@ class DatasetGenerator(ML_Element, register=False):
         self.filters = {k: 1 << k for k in self.filters}
 
         self.max_filters = 32 if len(self.filters) <= 32 else 64
-        if not self.resize_step is None:
-            assert self.resize_step % self.chunk_size == 0
 
     def get_dtypes(self) -> dict:
         return {k: v[DatasetGenerator.DTYPE] for k, v in self.metadata.items()}
