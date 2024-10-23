@@ -513,7 +513,7 @@ class TrainingManager:
                 ms[j].append(m)
         return ms
 
-    def create_trainers(self)->np.ndarray[Any, Trainer]:
+    def create_trainers(self)->np.ndarray:
         ts = []
         for i, models in enumerate(self.init_models()):
             ts.append([])
