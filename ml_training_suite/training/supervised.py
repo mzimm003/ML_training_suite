@@ -42,7 +42,10 @@ class SupervisedTraining(TrainingScript):
             criterion_kwargs:Dict[str, Any] = None,
             save_path:Union[str, Path] = None,
             balance_training_set = False,
-            k_fold_splits:int = 4,
+            k_fold_splits:int = 1,
+            train_proportion:float = 0.9,
+            validation_proportion:float = 0.1,
+            label_to_stratify:Union[str, None] = None,
             batch_size:int = 64,
             shuffle:bool = True,
             num_workers:int = 0,
@@ -83,6 +86,9 @@ class SupervisedTraining(TrainingScript):
         self.ds_kwargs = dataset_kwargs if dataset_kwargs else {}
         self.balance_training_set = balance_training_set
         self.k_fold_splits = k_fold_splits
+        self.train_proportion = train_proportion
+        self.validation_proportion = validation_proportion
+        self.label_to_stratify = label_to_stratify
         self.training_manager = None
         self.trainer = Trainer if trainer_class is None else trainer_class
         self.dl_kwargs = dict(
@@ -130,6 +136,9 @@ class SupervisedTraining(TrainingScript):
             dl_kwargs=self.dl_kwargs,
             num_splits=self.k_fold_splits,
             balance_training_set=self.balance_training_set,
+            train_proportion = self.train_proportion,
+            validation_proportion = self.validation_proportion,
+            label_to_stratify = self.label_to_stratify,
             shuffle=self.dl_kwargs["shuffle"],
             trainer_class=self.trainer,
             pipelines=self.pipelines,

@@ -377,6 +377,9 @@ class TrainingManager:
         dl_kwargs:dict,
         num_splits:int,
         balance_training_set:bool,
+        train_proportion:float,
+        validation_proportion:float,
+        label_to_stratify:Union[None,str],
         shuffle:bool,
         trainer_class:Type['Trainer'],
         pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
@@ -392,6 +395,9 @@ class TrainingManager:
         self.num_splits = num_splits
         self.balance_training_set = balance_training_set
         self.shuffle = shuffle
+        self.train_proportion = train_proportion
+        self.validation_proportion = validation_proportion
+        self.label_to_stratify = label_to_stratify
         self.data = data
         self.dl_kwargs = dl_kwargs
         self.trainer_class = trainer_class
@@ -442,10 +448,12 @@ class TrainingManager:
         if self.num_splits == 1:
             split_idxs = train_test_split(
                 self.data,
-                train_size=0.8,
-                test_size=0.2,
+                train_size=self.train_proportion,
+                test_size=self.validation_proportion,
                 shuffle=self.shuffle,
-                stratify=[self.data.labels]
+                stratify=(None
+                          if self.label_to_stratify is None
+                          else [getattr(self.data, self.label_to_stratify)])
                 )
         else:
             split_idxs = StratifiedKFold(
