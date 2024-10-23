@@ -382,6 +382,8 @@ class TrainingManager:
         label_to_stratify:Union[None,str],
         shuffle:bool,
         trainer_class:Type['Trainer'],
+        autoencoding:bool = False,
+        incremental:bool = False,
         pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
         models:IterOptional[Union[str, Type[Model]]] = None,
         models_kwargs:IterOptional[Dict[str, Any]] = None,
@@ -401,6 +403,8 @@ class TrainingManager:
         self.data = data
         self.dl_kwargs = dl_kwargs
         self.trainer_class = trainer_class
+        self.autoencoding = autoencoding
+        self.incremental = incremental
         self.device = (torch.device('cuda') if torch.cuda.is_available() else 'cpu')
         print("Expected device:{}".format(self.device))
         

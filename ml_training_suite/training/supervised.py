@@ -32,6 +32,8 @@ class SupervisedTraining(TrainingScript):
             dataset_kwargs:Dict[str, Any] = None,
             pipelines:IterOptional[List[Tuple[str, Callable]]] = None,
             trainer_class:Type[Trainer] = None,
+            autoencoding:bool = False,
+            incremental:bool = False,
             models:IterOptional[Union[str, Model]] = None,
             models_kwargs:IterOptional[Dict[str, Any]] = None,
             optimizers:IterOptional[Type[Optimizer]]= None,
@@ -91,6 +93,8 @@ class SupervisedTraining(TrainingScript):
         self.label_to_stratify = label_to_stratify
         self.training_manager = None
         self.trainer = Trainer if trainer_class is None else trainer_class
+        self.autoencoding = autoencoding
+        self.incremental = incremental
         self.dl_kwargs = dict(
             batch_size=batch_size,
             shuffle=shuffle,
@@ -141,6 +145,8 @@ class SupervisedTraining(TrainingScript):
             label_to_stratify = self.label_to_stratify,
             shuffle=self.dl_kwargs["shuffle"],
             trainer_class=self.trainer,
+            autoencoding=self.autoencoding,
+            incremental=self.incremental,
             pipelines=self.pipelines,
             models=self.classifiers,
             models_kwargs=self.classifiers_kwargs,
