@@ -1,6 +1,4 @@
 from ml_training_suite.callbacks import Metric, Callback
-from ml_training_suite.datasets import DataHandler
-from ml_training_suite.training import Trainer, TrainingScript
 
 import numpy as np
 
@@ -58,7 +56,7 @@ class SupervisedTrainingCallback(Callback):
             ret["mean_val_{}".format(met.__name__)] = np.mean(val_mets[:,:,i])
         return ret
     
-    def on_run_begin(self, script:TrainingScript):
+    def on_run_begin(self, script):
         training_manager = script.training_manager
         tracker = training_manager.training_tracker
         num_parent_models_per_fold = len(training_manager.models)/len(tracker.folds)
@@ -96,13 +94,13 @@ class SupervisedTrainingCallback(Callback):
                 self.validation_metrics_model_mapping[mod_id] = self.validation_metrics[i][j]
         self.inference_mode = SupervisedTrainingCallback.INFERENCE_MODES[0]
     
-    def on_train_batch_begin(self, script:TrainingScript):
+    def on_train_batch_begin(self, script):
         self.inference_mode = SupervisedTrainingCallback.INFERENCE_MODES[0]
 
-    def on_val_batch_begin(self, script:TrainingScript):
+    def on_val_batch_begin(self, script):
         self.inference_mode = SupervisedTrainingCallback.INFERENCE_MODES[1]
 
-    def on_inference_end(self, script:TrainingScript, trainer:Trainer, data_handler:DataHandler):
+    def on_inference_end(self, script, trainer, data_handler):
         metric_set = (self.training_metrics_model_mapping
                       if self.inference_mode == SupervisedTrainingCallback.INFERENCE_MODES[0]
                       else self.validation_metrics_model_mapping)
