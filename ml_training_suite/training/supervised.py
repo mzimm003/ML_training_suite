@@ -48,6 +48,8 @@ class SupervisedTraining(TrainingScript):
             num_workers:int = 0,
             callback:Type[Callback] = None,
             callback_kwargs:Dict[str, Any] = None,
+            save_torch:bool = True,
+            save_onnx:bool = True,
             **kwargs) -> None:
         """
         Args:
@@ -73,7 +75,10 @@ class SupervisedTraining(TrainingScript):
             callback: Class of processes interjected into training run.
             callback_kwargs: Configuration for callback.
         """
-        super().__init__(**kwargs)
+        super().__init__(
+            save_torch=save_torch,
+            save_onnx=save_onnx,
+            **kwargs)
         self.data = dataset
         self.ds_kwargs = dataset_kwargs if dataset_kwargs else {}
         self.balance_training_set = balance_training_set

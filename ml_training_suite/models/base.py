@@ -27,6 +27,8 @@ from ray.rllib.utils.typing import ModelConfigDict
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 from ray.rllib.policy.torch_policy_v2 import TorchPolicyV2
 
+from pathlib import Path
+
 class ModelConfig(Config):
     pass
 
@@ -103,7 +105,7 @@ class Model(nn.Module, ML_Element, register=False):
             .format(self))
 
     @staticmethod
-    def load_model(load_path, cuda=True):
+    def load_onnx_model(load_path, cuda=True):
         onnx.checker.check_model(onnx.load(load_path))
         class Mdl:
             type_to_np = {
@@ -173,6 +175,20 @@ class Model(nn.Module, ML_Element, register=False):
                 slf.model.run_with_iobinding(slf.binding)
                 return outs
         return Mdl()
+
+    @staticmethod
+    def load_pytorch_model(load_path, cuda=True):
+        return torch.load(load_path, weights_only=False)
+
+    @staticmethod
+    def load_model(load_path, cuda=True):
+        load_path = Path(load_path)
+        model = None
+        if load_path.suffix in ['.onnx']:
+            model = Model.load_onnx_model(load_path=load_path, cuda=cuda)
+        elif load_path.suffix in ['.pt','.pth']:
+            model = Model.load_pytorch_model(load_path=load_path, cuda=cuda)
+        return model
 
 class ModelRLLIBConfig(ModelConfig):
     pass

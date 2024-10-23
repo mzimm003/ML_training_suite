@@ -256,6 +256,8 @@ class TrainingTracker:
             self.fold=fold_num
         def updateParent(self, model_id):
             self.parent=model_id
+        def getParent(self):
+            return self.parent
         def hasParent(self):
             return self.parent >= 0
     class Modl:
@@ -291,6 +293,12 @@ class TrainingTracker:
         if isinstance(model, Model):
             model = id(model)
         return self.models[model].relationships.children
+    
+    def getParentByTrainingModel(self, model:Union[Model,int])->Model:
+        if isinstance(model, Model):
+            model = id(model)
+        parent_id = self.models[model].relationships.getParent()
+        return self.models[parent_id].obj
 
     def getTrainingModelsByFold(self, fold:int):
         return self.folds[fold].relationships.models
@@ -500,14 +508,14 @@ class TrainingManager:
                     pipeline=self.pipelines[i]))
         return ts
 
-    def get_models_for_onnx_save(self, dtype=None)-> tuple:
+    def get_models_and_sample_input(self, dtype=None)-> tuple:
         mods = []
-        for i, split in self.splits.items():
-            data_sample = next(iter(split.train_data))
-            for trainer in split.trainers:
-                d_h = trainer.generate_data_handler(data_sample)
-                d_h.process_data(trainer.model, dtype=dtype, trunc_batch=8)
-                mods.append((trainer.model.eval().to(dtype=dtype), d_h.get_inputs()))
+        for trainer in self[0].trainers:
+            model = self.training_tracker.getParentByTrainingModel(trainer.model)
+            data_sample = next(iter(self[0].train_data))
+            d_h = trainer.generate_data_handler(data_sample)
+            d_h.process_data(model, dtype=dtype, trunc_batch=8)
+            mods.append((model.eval().to(dtype=dtype), d_h.get_inputs()))
         return mods
     
     def step_lr_schedulers(self):
@@ -522,9 +530,15 @@ class TrainingScript(ML_Element, register=False):
     training_manager: 'TrainingManager'
     callback:Callback
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(
+            self,
+            save_torch:bool = True,
+            save_onnx:bool = True,
+            **kwargs) -> None:
         super().__init__(**kwargs)
         self.device = (torch.device('cuda') if torch.cuda.is_available() else 'cpu')
+        self.save_torch = save_torch
+        self.save_onnx = save_onnx
     
     @staticmethod
     def __isclose(input:torch.Tensor, other:torch.Tensor, equal_nan=False):
@@ -550,6 +564,12 @@ class TrainingScript(ML_Element, register=False):
                              atol=epsilon*5,
                              equal_nan=equal_nan)
 
+    def setup(self, config:dict):
+        raise NotImplementedError
+        
+    def step(self):
+        raise NotImplementedError
+        
     def save_model(self, model, data_input_sample, suffix="", save_dir=None, validate_model=True):
         validation_output = None
         if validate_model:
@@ -563,40 +583,58 @@ class TrainingScript(ML_Element, register=False):
 
         onx = None
         save_path = Path(save_dir) if save_dir else self.save_path
-        save_file = save_path / "{}{}/model.onnx".format(self.get_model_name(model), suffix)
-        if not save_file.parent.exists():
-            save_file.parent.mkdir(parents=True)
+        save_path = save_path / "{}{}".format(self.get_model_name(model), suffix)
+        save_files = []
+        save_path / "{}{}/model.onnx".format(self.get_model_name(model), suffix)
+        if not save_path.exists():
+            save_path.mkdir(parents=True)
 
         if isinstance(model, nn.Module):
-            torch.onnx.export(
-                model,
-                tuple(data_input_sample.values()),
-                input_names=list(data_input_sample.keys()),
-                f = save_file,
-                dynamic_axes={k: {0: "batch"} for k in data_input_sample.keys()}
-            )
+            if self.save_onnx:
+                save_file = save_path/"model.onnx"
+                torch.onnx.export(
+                    model,
+                    tuple(data_input_sample.values()),
+                    input_names=list(data_input_sample.keys()),
+                    f = save_file,
+                    dynamic_axes={k: {0: "batch"} for k in data_input_sample.keys()}
+                )
+                save_files.append(save_file)
+            if self.save_torch:
+                save_file = save_path/"model.pt"
+                torch.save(model, save_file)
+                save_files.append(save_file)
         else:
-            init_types = [("fet", FloatTensorType([None, data_input_sample.shape[-1]]))]
-            onx = convert_sklearn(model, initial_types=init_types)
-            with open(save_file, "wb") as f:
-                f.write(onx.SerializeToString())
+            if self.save_onnx:
+                save_file = save_path/"model.onnx"
+                init_types = [("fet", FloatTensorType([None, data_input_sample.shape[-1]]))]
+                onx = convert_sklearn(model, initial_types=init_types)
+                with open(save_file, "wb") as f:
+                    f.write(onx.SerializeToString())
+                save_files.append(save_file)
+            if self.save_torch:
+                save_file = save_path/"model.pt"
+                torch.save(model, save_file)
+                save_files.append(save_file)
+                
         if validate_model:
-            res_mod = None
-            res_output = None
-            if isinstance(model, nn.Module):
-                res_mod = Model.load_model(save_file)
-                res_output, *_ = res_mod(**data_input_sample)
-            else:
-                res_mod = Model.load_model(save_file, cuda=False)
-                res_output, *_ = res_mod(data_input_sample)
-            if not (validation_output.max(-1).indices==res_output.max(-1).indices).all():
-                warnings.warn(
-                    "Output decisions of training model and saved model do not match.",
-                    UserWarning)
-            if not self.__isclose(validation_output, res_output).all():
-                warnings.warn(
-                    "Output logits of training model and saved model do not match.",
-                    UserWarning)
+            for save_file in save_files:
+                res_mod = None
+                res_output = None
+                if isinstance(model, nn.Module):
+                    res_mod = Model.load_model(save_file)
+                    res_output, *_ = res_mod(**data_input_sample)
+                else:
+                    res_mod = Model.load_model(save_file, cuda=False)
+                    res_output, *_ = res_mod(data_input_sample)
+                if not (validation_output.max(-1).indices==res_output.max(-1).indices).all():
+                    warnings.warn(
+                        "Output decisions of training model and saved model do not match.",
+                        UserWarning)
+                if not self.__isclose(validation_output, res_output).all():
+                    warnings.warn(
+                        "Output logits of training model and saved model do not match.",
+                        UserWarning)
 
     def save_results(self, model, results):
         save_file = self.save_path / "{}/results.json".format(self.get_model_name(model))
@@ -610,4 +648,4 @@ class TrainingScript(ML_Element, register=False):
         return name
     
     def get_models_for_onnx_save(self, dtype=None):
-        return self.training_manager.get_models_for_onnx_save(dtype=dtype)
+        return self.training_manager.get_models_and_sample_input(dtype=dtype)
