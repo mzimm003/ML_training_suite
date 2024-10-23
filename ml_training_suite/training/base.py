@@ -151,10 +151,35 @@ class LRScheduler(LRSchedulerTorch, ML_Element, register=False):
     def is_batch_based(cls, key):
         return cls.registry.is_batch_based(key)
 
+class CrossEntropyLoss(nn.CrossEntropyLoss):
+    def __init__(
+            self,
+            weight: Union[torch.Tensor, None] = None,
+            size_average=None,
+            ignore_index: int = -100,
+            reduce=None,
+            reduction: str = 'mean',
+            label_smoothing: float = 0,
+            class_index: int = 1) -> None:
+        super().__init__(
+            weight,
+            size_average,
+            ignore_index,
+            reduce,
+            reduction,
+            label_smoothing)
+        self.class_index = class_index
+    
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        if input.ndim > 1:
+            input = torch.movedim(input, self.class_index, 1)
+            target = torch.movedim(target, self.class_index, 1)
+        return super().forward(input, target)
+
 class Criterion(ML_Element, register=False):
     registry = Registry(
         MSE = nn.MSELoss,
-        cross_entropy = nn.CrossEntropyLoss,
+        CrossEntropy = CrossEntropyLoss,
     )
 
 def ray_trainable_wrap(
