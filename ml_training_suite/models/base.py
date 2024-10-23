@@ -57,7 +57,7 @@ class Model(nn.Module, ML_Element, register=False):
             autoencodable = (autoencodable
                            and decoder.is_trainable_layer_wise())
             autoencodable = (autoencodable
-                           and len(self)==len(decoder))
+                           and len(list(enumerate(self)))==len(list(enumerate(decoder))))
         return autoencodable
 
     def _item_slicing_and_indexing(self, key):
