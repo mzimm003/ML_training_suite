@@ -22,7 +22,9 @@ from typing import (
     Literal,
     List,
     Tuple,
-    Dict
+    Dict,
+    final,
+    Set
     )
 from typing_extensions import override
 from dataclasses import dataclass
@@ -47,6 +49,9 @@ from torch.optim.lr_scheduler import (
 from sklearn.model_selection import StratifiedKFold
 from skl2onnx.common.data_types import FloatTensorType
 from skl2onnx import convert_sklearn
+
+import numpy as np
+import enum
 
 class Optimizer(OptimizerTorch, ML_Element, register=False):
     registry = Registry(
@@ -228,10 +233,109 @@ class Trainer(ML_Element, register=False):
         return data_handler
 
 @dataclass
-class TrainSplits:
+class TrainCluster:
+    fold_num:int
     train_data:DataLoader
     val_data:DataLoader
     trainers:List['Trainer']
+
+class TrainerRoster:
+    pass
+
+class TrainingTracker:
+    class ModelRelationships:
+        def __init__(self):
+            self.children:List[int] = []
+            self.fold:int = -1
+            self.parent:int = -1
+        def addChild(self, model_id):
+            self.children.append(model_id)
+        def removeChild(self, model_id):
+            self.children.remove(model_id)
+        def updateFold(self, fold_num):
+            self.fold=fold_num
+        def updateParent(self, model_id):
+            self.parent=model_id
+        def hasParent(self):
+            return self.parent >= 0
+    class Modl:
+        def __init__(self, obj):
+            self.obj = obj
+            self.relationships = TrainingTracker.ModelRelationships()
+    class FoldRelationships:
+        def __init__(self):
+            self.models:List[int] = []
+        def addChild(self, model_id):
+            self.models.append(model_id)
+        def removeChild(self, model_id):
+            self.models.remove(model_id)
+    class Fold:
+        def __init__(self, obj):
+            self.obj = obj
+            self.relationships = TrainingTracker.FoldRelationships()
+
+    def __init__(
+            self):
+        self.folds:Dict[int, TrainingTracker.Fold] = {}
+        self.models:Dict[int, TrainingTracker.Modl] = {}
+        self.clusters:List[TrainCluster] = []
+    
+    def getData(self):
+        return {i:f.obj for i, f in self.folds.items()}
+
+    def getDataSplit(self, fold_num):
+        train, val = self.folds[fold_num].obj
+        return train, val
+
+    def getTrainingModelsByParent(self, model:Union[Model,int]):
+        if isinstance(model, Model):
+            model = id(model)
+        return self.models[model].relationships.children
+
+    def getTrainingModelsByFold(self, fold:int):
+        return self.folds[fold].relationships.models
+    
+    def getFoldByModel(self, model:Union[Model,int]):
+        if isinstance(model, Model):
+            model = id(model)
+        return self.models[model].relationships.fold
+
+    def updateModelFold(self, model, fold_num):
+        self.models[id(model)].relationships.updateFold(fold_num)
+        self.folds[fold_num].relationships.addChild(id(model))
+
+    def addTrainerSet(self, fold_num, trainers:List[Trainer]):
+        train, val = self.getDataSplit(fold_num=fold_num)
+        self.clusters.append(
+            TrainCluster(
+                fold_num=fold_num,
+                train_data=train,
+                val_data=val,
+                trainers=trainers))
+        
+        for trainer in trainers:
+            self.updateModelFold(model=trainer.model, fold_num=fold_num)
+
+    def registerDataFolds(self, data):
+        for i, d in enumerate(data):
+            self.folds[i] = TrainingTracker.Fold(d)
+
+    def registerModel(self, base_model, training_model=[]):
+        self.models[id(base_model)] = TrainingTracker.Modl(base_model)
+        for model in training_model:
+            self.models[id(model)] = TrainingTracker.Modl(model)
+            self.models[id(base_model)].relationships.addChild(
+                self.models[id(model)])
+            self.models[id(model)].relationships.updateParent(
+                self.models[id(base_model)])
+    
+    def __len__(self):
+        return len(self.clusters)
+
+    def __getitem__(self, index)->TrainCluster:
+        if not 0 <= index < len(self):
+            raise IndexError
+        return self.clusters[index]
 
 class TrainingManager:
     def __init__(
@@ -283,37 +387,24 @@ class TrainingManager:
         self.criterion = Criterion.initialize(
             criterion, criterion_kwargs)
         self.criterion.to(device=self.device)
-        self.splits:Dict[int, TrainSplits] = {}
-        self.create_splits()
-        assert len(self) == 1
-        for split in self:
-            for trainer_x in split.trainers:
-                model_match_count = 0
-                optimizer_match_count = 0
-                for trainer_y in split.trainers:
-                    if trainer_x.model == trainer_y.model:
-                        model_match_count += 1
-                    if trainer_x.optimizer == trainer_y.optimizer:
-                        optimizer_match_count += 1
-                assert model_match_count == 1
-                assert optimizer_match_count == 1
+
+        self.training_tracker = TrainingTracker()
+        self.training_tracker.registerDataFolds(self.create_data_splits_and_folds())
+        self.assign_trainings()
     
     def __len__(self):
-        return len(self.splits)
+        return len(self.training_tracker)
 
     def __getitem__(self, index):
-        if not 0 <= index < len(self):
-            raise IndexError
-        return self.splits[index]
+        return self.training_tracker[index]
 
-    def create_splits(self):
-        for i, (training_data, validation_data) in enumerate(self.create_dataloaders()):
-            self.splits[i] = TrainSplits(
-                train_data=training_data,
-                val_data=validation_data,
-                trainers=self.create_trainers())
+    def assign_trainings(self):
+        for i in self.training_tracker.getData().keys():
+            trainerss = self.create_trainers().T
+            for trainers in trainerss:
+                self.training_tracker.addTrainerSet(i, trainers=trainers)
 
-    def create_dataloaders(self):
+    def create_data_splits_and_folds(self):
         split_idxs = None
         if self.num_splits == 1:
             split_idxs = train_test_split(
@@ -346,23 +437,67 @@ class TrainingManager:
             d_ls.append((DataLoader(train_data,**train_dl_kwargs),
                    DataLoader(val_data,**self.dl_kwargs)))
         return d_ls
-        
-    def create_trainers(self):
+
+    def define_training_models(self, model:Model)->List[Model]:
+        """
+        Definition of models to be trianed.
+
+        Can be overridden to instruct intermediate model trainings. Each element
+        of the model list defined here will be trained over the entire dataset
+        before moving on to the next element. For that reason, models should be
+        supplied in desired training order.
+        """
+        models = [model]
+        if self.incremental:
+            assert model.is_trainable_layer_wise()
+            models = [model[:i+1] for i, _ in enumerate(model)]
+        if self.autoencoding:
+            assert model.is_autoencodable()
+            tmp = []
+            dec = model.decoder()
+            for i, mod in enumerate(models):
+                tmp.append(nn.Sequential(mod, dec[len(models)-(i+1):]))
+        return models
+
+    @final
+    def init_models(self)->List[List[Model]]:
+        ms = []
+        for j, model in enumerate(self.models):
+            ms.append(
+                Model.initialize(
+                    model,
+                    self.models_kwargs[j]).to(device=self.device))
+        self.models = ms
+
+        ms = []
+        for j, model in enumerate(self.models):
+            ms.append([])
+            training_models = self.define_training_models(model)
+            self.training_tracker.registerModel(
+                model,
+                training_model=training_models)
+            for m in training_models:
+                ms[j].append(m)
+        return ms
+
+    def create_trainers(self)->np.ndarray[Any, Trainer]:
         ts = []
-        for j, m in enumerate(self.models):
-            model = Model.initialize(m, self.models_kwargs[j]).to(device=self.device)
-            opt = Optimizer.initialize(
-                    self.optimizers[j], model.parameters(), self.optimizers_kwargs[j])
-            lr_sch = self.lr_schedulers[j]
-            if lr_sch:
-                lr_sch = LRScheduler.initialize(
-                    lr_sch, opt, self.lr_schedulers_kwargs[j])
-            ts.append(self.trainer_class(
-                model=model,
-                optimizer=opt,
-                lr_scheduler=lr_sch,
-                criterion=self.criterion,
-                pipeline=self.pipelines[j]))
+        for i, models in enumerate(self.init_models()):
+            ts.append([])
+            for model in models:
+                opt = Optimizer.initialize(
+                        self.optimizers[i], model.parameters(), self.optimizers_kwargs[i])
+                lr_sch = self.lr_schedulers[i]
+                if lr_sch:
+                    lr_sch = LRScheduler.initialize(
+                        lr_sch, opt, self.lr_schedulers_kwargs[i])
+                ts.append(
+                    self.trainer_class(
+                    model=model,
+                    optimizer=opt,
+                    lr_scheduler=lr_sch,
+                    criterion=self.criterion,
+                    pipeline=self.pipelines[i]))
         return ts
 
     def get_models_for_onnx_save(self, dtype=None)-> tuple:

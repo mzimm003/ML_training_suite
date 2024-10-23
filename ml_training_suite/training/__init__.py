@@ -1,6 +1,6 @@
 from .base import (
     TrainingScript,
-    TrainSplits,
+    TrainCluster,
     TrainingManager,
     Trainer,
     ray_trainable_wrap,

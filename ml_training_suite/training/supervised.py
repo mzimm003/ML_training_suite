@@ -111,7 +111,7 @@ class SupervisedTraining(TrainingScript):
         self.criterion = criterion
         self.criterion_kwargs = criterion_kwargs if criterion_kwargs else {}
         self.save_path = save_path
-        self.callback = callback if callback else Callback.ClassifierTrainingCallback
+        self.callback = callback if callback else Callback.SupervisedTrainingCallback
         self.callback_kwargs = callback_kwargs if callback_kwargs else {}
 
     def setup(self):
@@ -163,9 +163,9 @@ class SupervisedTraining(TrainingScript):
                 #         data_handler=res)
                     
                 for trainer in train_elements.trainers:
-                    self.callback.on_model_select(self)
                     self.callback.on_inference_end(
                         self,
+                        trainer=trainer,
                         data_handler=trainer.infer_itr(data))
                 
             for trainer in train_elements.trainers:
@@ -185,9 +185,9 @@ class SupervisedTraining(TrainingScript):
                 #         self,
                 #         data_handler=res)
                 for trainer in train_elements.trainers:
-                    self.callback.on_model_select(self)
                     self.callback.on_inference_end(
                         self,
+                        trainer=trainer,
                         data_handler=trainer.infer_itr(data))
         self.training_manager.step_lr_schedulers()
         return self.callback.get_epoch_metrics()

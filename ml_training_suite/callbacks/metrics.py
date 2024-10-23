@@ -8,8 +8,8 @@ import numpy as np
 
 class Metric(ML_Element, register=False):
     registry = Registry()
-    def __init__(self, model_num, fold_num) -> None:
-        self.model_num = model_num
+    def __init__(self, model_name, fold_num) -> None:
+        self.model_name = model_name
         self.fold_num = fold_num
         self.numerator = 0.
         self.denominator = 0.
@@ -34,8 +34,8 @@ class LearningRate(Rate):
         super().include(data_handler.get_last_lr())
 
 class pAUC(Rate):
-    def __init__(self, model_num, fold_num, p=0.8) -> None:
-        super().__init__(model_num, fold_num)
+    def __init__(self, model_name, fold_num, p=0.8) -> None:
+        super().__init__(model_name, fold_num)
         self.p = p
         self.confidences = []
         self.targets = []
