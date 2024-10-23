@@ -88,8 +88,8 @@ class Model(nn.Module, ML_Element, register=False):
             raise TypeError("Expected int or slice, but object {} is type {}."
                             .format(key, type(key)))
         
-    def __len__(self):
-        return len(self[:])-len(self[:0])
+    # def __len__(self):
+    #     return len(self[:])-len(self[:0])
     
     def decoder(self) -> 'Model':
         """
