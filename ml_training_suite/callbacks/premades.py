@@ -65,7 +65,7 @@ class SupervisedTrainingCallback(Callback):
         self.models_in_training = [
             '{:d}{}'.format(
                 int(i//num_training_models_per_parent),
-                chr(65+i%num_training_models_per_parent))
+                chr(65+int(i%num_training_models_per_parent)))
             for i in
             range(num_training_models_per_fold)]
         
