@@ -358,9 +358,9 @@ class TrainingTracker:
         for model in training_model:
             self.models[id(model)] = TrainingTracker.Modl(model)
             self.models[id(base_model)].relationships.addChild(
-                self.models[id(model)])
+                id(model))
             self.models[id(model)].relationships.updateParent(
-                self.models[id(base_model)])
+                id(base_model))
     
     def __len__(self):
         return len(self.clusters)
