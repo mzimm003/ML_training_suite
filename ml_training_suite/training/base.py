@@ -445,7 +445,7 @@ class TrainingManager:
 
     def assign_trainings(self):
         for i in self.training_tracker.getData().keys():
-            trainerss = self.create_trainers().T
+            trainerss = np.array(self.create_trainers()).T
             for trainers in trainerss:
                 self.training_tracker.addTrainerSet(i, trainers=trainers)
 
@@ -527,7 +527,7 @@ class TrainingManager:
                 ms[j].append(m)
         return ms
 
-    def create_trainers(self)->np.ndarray:
+    def create_trainers(self)->List[List[Trainer]]:
         ts = []
         for i, models in enumerate(self.init_models()):
             ts.append([])
