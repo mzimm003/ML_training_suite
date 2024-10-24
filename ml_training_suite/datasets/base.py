@@ -295,7 +295,7 @@ class DataHandler:
 
     def set_model_output(self, output):
         self.aux_output = None
-        if isinstance(output, Iterable):
+        if type(output) in [list, tuple]:
             self.aux_output = output[1:]
         else:
             output = output,
