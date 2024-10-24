@@ -538,7 +538,7 @@ class TrainingManager:
                 if lr_sch:
                     lr_sch = LRScheduler.initialize(
                         lr_sch, opt, self.lr_schedulers_kwargs[i])
-                ts.append(
+                ts[i].append(
                     self.trainer_class(
                     model=model,
                     optimizer=opt,
