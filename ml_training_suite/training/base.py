@@ -408,13 +408,15 @@ class TrainingManager:
         self.device = (torch.device('cuda') if torch.cuda.is_available() else 'cpu')
         print("Expected device:{}".format(self.device))
         
-        self.pipelines = pipelines
         self.models:IterOptional[nn.Module] = models
         if not isinstance(self.models, list):
             self.models = [self.models]
         self.models_kwargs = models_kwargs if models_kwargs else [{}]*len(self.models)
         if not isinstance(self.models_kwargs, list):
             self.models_kwargs = [self.models_kwargs]*len(self.models)
+        self.pipelines = pipelines
+        if not isinstance(self.pipelines, list):
+            self.pipelines = [self.pipelines]*len(self.models)
         self.optimizers = optimizers
         if not isinstance(self.optimizers, list):
             self.optimizers = [self.optimizers]*len(self.models)
