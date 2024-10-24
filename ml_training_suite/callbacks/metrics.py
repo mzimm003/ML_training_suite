@@ -110,9 +110,12 @@ class Accuracy(Ratio):
 
 class Precision(Ratio):
     def include(self, data_handler: DataHandler):
+        output, target = self.process_output_target(
+            data_handler.output,
+            data_handler.target)
         num_true_positives=(
-            data_handler.target.int()[data_handler.output_label.int() == 1].sum())
-        num_positive_inferences = (data_handler.output_label.int() == 1).sum()
+            data_handler.target.int()[output.int() == 1].sum())
+        num_positive_inferences = (target.int() == 1).sum()
         super().include(
             num_true_positives.item(),
             num_positive_inferences.item()
@@ -120,9 +123,12 @@ class Precision(Ratio):
 
 class Recall(Ratio):
     def include(self, data_handler: DataHandler):
+        output, target = self.process_output_target(
+            data_handler.output,
+            data_handler.target)
         num_true_positives=(
-            data_handler.target.int()[data_handler.output_label.int() == 1].sum())
-        num_positive_targets = (data_handler.target.int() == 1).sum()
+            data_handler.target.int()[output.int() == 1].sum())
+        num_positive_targets = (target.int() == 1).sum()
         super().include(
             num_true_positives.item(),
             num_positive_targets.item()
