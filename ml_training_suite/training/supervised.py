@@ -158,7 +158,8 @@ class SupervisedTraining(TrainingScript):
             criterion_kwargs=self.criterion_kwargs,
         )
         print("Training manager initialized.")
-        self.save_path = Path(self.save_path)
+        if not self.save_path is None:
+            self.save_path = Path(self.save_path)
         print("Completed setup.")
 
     def run(self):
