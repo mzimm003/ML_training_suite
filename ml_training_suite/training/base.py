@@ -500,10 +500,17 @@ class TrainingManager:
             models = [model[:i+1] for i, _ in enumerate(model)]
         if self.autoencoding:
             assert model.is_autoencodable()
+            class AutoModule(Model):
+                def __init__(slf, enc, dec):
+                    super().__init__()
+                    slf.enc = enc
+                    slf.dec = dec
+                def forward(slf, *args, **kw):
+                    return slf.dec(slf.enc(*args, **kw))
             tmp = []
             dec = model.decoder()
             for i, mod in enumerate(models):
-                tmp.append(nn.Sequential(mod, dec[len(models)-(i+1):]))
+                tmp.append(AutoModule(mod, dec[len(models)-(i+1):]))
             models = tmp
         return models
 
