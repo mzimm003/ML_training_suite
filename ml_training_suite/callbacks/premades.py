@@ -102,7 +102,7 @@ class SupervisedTrainingCallback(Callback):
             for j, (mod_name, mod_id) in enumerate(zip(self.models_in_training, models_in_training_ids)):
                 self.training_metrics[i].append([])
                 for met in self.TRAINING_METRICS:
-                    met_obj = met(mod_name, j, self)
+                    met_obj = met(mod_name, i, self)
                     self.training_metrics[i][j].append(met_obj)
                 self.training_metrics_model_mapping[mod_id] = self.training_metrics[i][j]
 
@@ -114,7 +114,7 @@ class SupervisedTrainingCallback(Callback):
             for j, (mod_name, mod_id) in enumerate(zip(self.models_in_training, models_in_training_ids)):
                 self.validation_metrics[i].append([])
                 for met in self.VALIDATION_METRICS:
-                    met_obj = met(mod_name, j, self)
+                    met_obj = met(mod_name, i, self)
                     self.validation_metrics[i][j].append(met_obj)
                 self.validation_metrics_model_mapping[mod_id] = self.validation_metrics[i][j]
         self.inference_mode = SupervisedTrainingCallback.INFERENCE_MODES[0]
