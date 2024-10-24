@@ -504,6 +504,7 @@ class TrainingManager:
             dec = model.decoder()
             for i, mod in enumerate(models):
                 tmp.append(nn.Sequential(mod, dec[len(models)-(i+1):]))
+            models = tmp
         return models
 
     @final
