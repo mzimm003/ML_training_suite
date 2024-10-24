@@ -243,7 +243,6 @@ class DataHandler:
     loss:torch.Tensor
     output:torch.Tensor
     aux_output:Union[Tuple[torch.Tensor],None]
-    output_label:torch.Tensor
     target:torch.Tensor
     last_lr:float
     pipeline:List[Tuple[str, Callable]]
@@ -300,7 +299,6 @@ class DataHandler:
         else:
             output = output,
         self.output = output[0]
-        self.output_label = self.output.max(-1).indices
 
     def run_pipeline(self):
         # Pipeline exists to modify input data prior to providing to training
