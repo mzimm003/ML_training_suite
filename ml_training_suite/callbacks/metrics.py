@@ -114,8 +114,8 @@ class Precision(Ratio):
             data_handler.output,
             data_handler.target)
         num_true_positives=(
-            data_handler.target.int()[output.int() == 1].sum())
-        num_positive_inferences = (target.int() == 1).sum()
+            target.int()[output.int() == 1].sum())
+        num_positive_inferences = (output.int() == 1).sum()
         super().include(
             num_true_positives.item(),
             num_positive_inferences.item()
@@ -127,7 +127,7 @@ class Recall(Ratio):
             data_handler.output,
             data_handler.target)
         num_true_positives=(
-            data_handler.target.int()[output.int() == 1].sum())
+            target.int()[output.int() == 1].sum())
         num_positive_targets = (target.int() == 1).sum()
         super().include(
             num_true_positives.item(),
