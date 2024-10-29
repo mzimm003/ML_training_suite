@@ -3,6 +3,10 @@ from ml_training_suite.registry import Registry, IncludeRegistryABC
 
 from typing import (
     Any,
+    Tuple,
+    Type,
+    Union,
+    Literal
 )
 
 from sklearn.discriminant_analysis import (
@@ -29,11 +33,53 @@ from ray.rllib.policy.torch_policy_v2 import TorchPolicyV2
 
 from pathlib import Path
 
+class TorchModelSaveStructure:
+    CLASS = "model_class"
+    CONFIG = "model_config"
+    STATE_DICT = "model_state_dict"
+
+    def __init__(
+            self,
+            model_class,
+            config,
+            state_dict,) -> None:
+        self.parts = {
+            self.CLASS: model_class,
+            self.CONFIG: config,
+            self.STATE_DICT: state_dict}
+
+    def __getitem__(self, key):
+        return self.parts[key]
+
+    @classmethod
+    def compose_from_parts(
+            cls,
+            model_class:Union['Model',Type['Model']],
+            config:'ModelConfig',
+            state_dict:dict):
+        if isinstance(model_class, Model):
+            model_class = type(model_class)
+        return cls(model_class, config, state_dict)
+    
+    @classmethod
+    def compose_from_model(
+            cls,
+            model:'Model'):
+        return cls.compose_from_parts(
+            model,
+            model.config,
+            model.state_dict())
+
+    def decompose_parts(
+            self) -> Tuple[Type['Model'], 'ModelConfig', dict]:
+        return self[self.CLASS], self[self.CONFIG], self[self.STATE_DICT]
+
 class ModelConfig(Config):
     pass
 
 class Model(nn.Module, ML_Element, register=False):
     registry = Registry()
+    config:ModelConfig
 
     @staticmethod
     def __method_is_overridden(method:str, instance:'Model'):
@@ -178,7 +224,14 @@ class Model(nn.Module, ML_Element, register=False):
 
     @staticmethod
     def load_pytorch_model(load_path, cuda=True):
-        return torch.load(load_path, weights_only=False)
+        model = torch.load(load_path)
+        if isinstance(model, TorchModelSaveStructure):
+            model_class, model_config, model_state_dict = model.decompose_parts()
+            model = model_class(model_config)
+            model.load_state_dict(
+                model_state_dict,
+                map_location=torch.device("cuda" if cuda else "cpu"))
+        return model
 
     @staticmethod
     def load_model(load_path, cuda=True):
@@ -189,6 +242,35 @@ class Model(nn.Module, ML_Element, register=False):
         elif load_path.suffix in ['.pt','.pth']:
             model = Model.load_pytorch_model(load_path=load_path, cuda=cuda)
         return model
+
+    def save_pytorch_model(self, save_path:Path)->Path:
+        save_file = save_path/"model.pt"
+        torch.save(TorchModelSaveStructure.compose_from_model(self), save_file)
+        return save_file
+
+    def save_onnx_model(self, save_path:Path, data_input_sample:dict)->Path:
+        save_file = save_path/"model.onnx"
+        torch.onnx.export(
+            self,
+            tuple(data_input_sample.values()),
+            input_names=list(data_input_sample.keys()),
+            f = save_file,
+            dynamic_axes={k: {0: "batch"} for k in data_input_sample.keys()}
+        )
+        return save_file
+
+    def save_model(
+            self,
+            save_path:Path,
+            save_as:Literal["torch","onnx"]="torch",
+            data_input_sample=None,
+            )->Path:
+        save_file = None
+        if save_as == "onnx":
+            save_file = self.save_onnx_model(save_path, data_input_sample)
+        elif save_as == "torch":
+            save_file = self.save_pytorch_model(save_path)
+        return save_file
 
 class ModelRLLIBConfig(ModelConfig):
     pass

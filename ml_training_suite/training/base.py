@@ -628,28 +628,22 @@ class TrainingScript(ML_Element, register=False):
         if isinstance(validation_output, Iterable):
             validation_output = validation_output[0]
 
-        onx = None
         save_path = Path(save_dir) if save_dir else self.save_path
         save_path = save_path / "{}{}".format(self.get_model_name(model), suffix)
         save_files = []
-        save_path / "{}{}/model.onnx".format(self.get_model_name(model), suffix)
         if not save_path.exists():
             save_path.mkdir(parents=True)
 
-        if isinstance(model, nn.Module):
+        if isinstance(model, Model):
             if self.save_onnx:
-                save_file = save_path/"model.onnx"
-                torch.onnx.export(
-                    model,
-                    tuple(data_input_sample.values()),
-                    input_names=list(data_input_sample.keys()),
-                    f = save_file,
-                    dynamic_axes={k: {0: "batch"} for k in data_input_sample.keys()}
-                )
+                save_file = model.save_model(
+                    save_path=save_path,
+                    save_as="onnx",
+                    data_input_sample=data_input_sample)
                 save_files.append(save_file)
             if self.save_torch:
-                save_file = save_path/"model.pt"
-                torch.save(model, save_file)
+                save_file = model.save_model(
+                    save_path=save_path)
                 save_files.append(save_file)
         else:
             if self.save_onnx:
