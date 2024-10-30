@@ -224,13 +224,13 @@ class Model(nn.Module, ML_Element, register=False):
 
     @staticmethod
     def load_pytorch_model(load_path, cuda=True):
-        model = torch.load(load_path)
+        model = torch.load(
+            load_path,
+            map_location=torch.device("cuda" if cuda else "cpu"))
         if isinstance(model, TorchModelSaveStructure):
             model_class, model_config, model_state_dict = model.decompose_parts()
             model = model_class(model_config)
-            model.load_state_dict(
-                model_state_dict,
-                map_location=torch.device("cuda" if cuda else "cpu"))
+            model.load_state_dict(model_state_dict)
         return model
 
     @staticmethod
