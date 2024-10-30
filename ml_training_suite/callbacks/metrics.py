@@ -68,7 +68,7 @@ class pAUC(Rate):
         fpr = fp/(tgts_sorted==False).sum()
         rect_heights = (tpr-self.p).clip(0)
         rect_widths = torch.diff(fpr, append=torch.tensor([0], device=fpr.device)).abs()
-        pauc = (rect_heights*rect_widths).sum()
+        pauc = (rect_heights*rect_widths).sum().item()
         return pauc
     
     def get_confidences(self, data_handler: DataHandler):

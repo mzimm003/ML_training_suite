@@ -44,9 +44,6 @@ class SupervisedTrainingCallback(Callback):
     
     def get_epoch_metrics(self):
         ret = {}
-        def get_res(x:Metric):
-            return x.get_result()
-        get_res = np.vectorize(get_res)
         train_mets = np.empty_like(self.training_metrics)
         for fold, fold_metrics in enumerate(self.training_metrics):
             for mod, mod_metrics in enumerate(fold_metrics):
