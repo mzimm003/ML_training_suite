@@ -231,6 +231,7 @@ class Model(nn.Module, ML_Element, register=False):
             model_class, model_config, model_state_dict = model.decompose_parts()
             model = model_class(model_config)
             model.load_state_dict(model_state_dict)
+        model.to(device=torch.device("cuda" if cuda else "cpu"))
         return model
 
     @staticmethod
