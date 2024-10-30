@@ -61,21 +61,21 @@ class SupervisedTrainingCallback(Callback):
                     val_mets[fold][mod][i] = res
                     
         for fold in range(len(self.training_metrics)):
-            for i, met in enumerate(self.TRAINING_METRICS):
-                ret["mean_fold{}_train_{}".format(fold, met.__name__)] = np.mean(train_mets[fold,:,i])
-            for i, met in enumerate(self.VALIDATION_METRICS):
-                ret["mean_fold{}_val_{}".format(fold, met.__name__)] = np.mean(val_mets[fold,:,i])
+            for i, met in enumerate(self.training_metrics[fold][0]):
+                ret["mean_fold{}_train_{}".format(met.fold_num, met)] = np.mean(train_mets[fold,:,i])
+            for i, met in enumerate(self.validation_metrics[fold][0]):
+                ret["mean_fold{}_val_{}".format(met.fold_num, met)] = np.mean(val_mets[fold,:,i])
 
         for mod_idx, mod_name in enumerate(self.models_in_training):
-            for i, met in enumerate(self.TRAINING_METRICS):
-                ret["mean_model{}_train_{}".format(mod_name, met.__name__)] = np.mean(train_mets[:,mod_idx,i])
-            for i, met in enumerate(self.VALIDATION_METRICS):
-                ret["mean_model{}_val_{}".format(mod_name, met.__name__)] = np.mean(val_mets[:,mod_idx,i])
+            for i, met in enumerate(self.training_metrics[0][mod_idx]):
+                ret["mean_model{}_train_{}".format(met.model_name, met)] = np.mean(train_mets[:,mod_idx,i])
+            for i, met in enumerate(self.validation_metrics[0][mod_idx]):
+                ret["mean_model{}_val_{}".format(met.model_name, met)] = np.mean(val_mets[:,mod_idx,i])
         
-        for i, met in enumerate(self.TRAINING_METRICS):
-            ret["mean_train_{}".format(met.__name__)] = np.mean(train_mets[:,:,i])
-        for i, met in enumerate(self.VALIDATION_METRICS):
-            ret["mean_val_{}".format(met.__name__)] = np.mean(val_mets[:,:,i])
+        for i, met in enumerate(self.training_metrics[0][0]):
+            ret["mean_train_{}".format(met)] = np.mean(train_mets[:,:,i])
+        for i, met in enumerate(self.validation_metrics[0][0]):
+            ret["mean_val_{}".format(met)] = np.mean(val_mets[:,:,i])
         return ret
     
     def on_run_begin(self, script):
