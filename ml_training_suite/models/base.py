@@ -81,6 +81,19 @@ class Model(nn.Module, ML_Element, register=False):
     registry = Registry()
     config:ModelConfig
 
+    @classmethod
+    def initialize(cls, obj:Union[type,str]=None, config:Union[dict,Config]=None):
+        if (isinstance(obj, str) or isinstance(obj, Path)) and Path(obj).exists():
+            return cls.load_model(obj)
+        else:
+            if config is None:
+                config = {}
+            if isinstance(config, Config):
+                config = config.asDict()
+            if obj is None:
+                obj = cls
+            return cls.registry.initialize(obj, config)
+
     @staticmethod
     def __method_is_overridden(method:str, instance:'Model'):
         base_method = getattr(Model, method)
@@ -235,7 +248,7 @@ class Model(nn.Module, ML_Element, register=False):
         return model
 
     @staticmethod
-    def load_model(load_path, cuda=True):
+    def load_model(load_path, cuda=False):
         load_path = Path(load_path)
         model = None
         if load_path.suffix in ['.onnx']:

@@ -663,10 +663,10 @@ class TrainingScript(ML_Element, register=False):
                 res_mod = None
                 res_output = None
                 if isinstance(model, nn.Module):
-                    res_mod = Model.load_model(save_file)
+                    res_mod = Model.load_model(save_file, cuda=self.device.type == 'cuda')
                     res_output, *_ = res_mod(**data_input_sample)
                 else:
-                    res_mod = Model.load_model(save_file, cuda=False)
+                    res_mod = Model.load_model(save_file)
                     res_output, *_ = res_mod(data_input_sample)
                 if not (validation_output.max(-1).indices==res_output.max(-1).indices).all():
                     warnings.warn(

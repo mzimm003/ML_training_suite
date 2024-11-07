@@ -307,6 +307,7 @@ class DataHandler:
         # outputs.
         for inp, mod in self.pipeline:
             inp = {k:self.inputs[k] for k in inp}
+            mod.to(device=next(iter(inp.values())).device)
             if len(inp) > 1:
                 raise NotImplementedError
             out, *_ = mod(**inp)
