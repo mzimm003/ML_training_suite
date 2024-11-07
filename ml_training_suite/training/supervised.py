@@ -62,8 +62,8 @@ class SupervisedTraining(TrainingScript):
             dataset_kwargs: Configuration for the dataset.
             pipelines: Models to pass data through prior to training model.
             trainer_class: Class governing model training.
-            classifiers: The classifier class to be used.
-            classifiers_kwargs: Configuration for the classifier.
+            models: The classifier class to be used.
+            models_kwargs: Configuration for the classifier.
             optimizers: The optimizer class to be used.
             optimizers_kwargs : Configuration for the optimizer.
             lr_schedulers: The learning rate scheduler class to be used, if any.
