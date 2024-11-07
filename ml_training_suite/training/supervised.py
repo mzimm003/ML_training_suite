@@ -105,24 +105,24 @@ class SupervisedTraining(TrainingScript):
             )
 
         self.pipelines = pipelines
-        self.classifiers:IterOptional[nn.Module] = models
-        if not isinstance(self.classifiers, list):
-            self.classifiers = [self.classifiers]
-        self.classifiers_kwargs = models_kwargs if models_kwargs else [{}]*len(self.classifiers)
-        if not isinstance(self.classifiers_kwargs, list):
-            self.classifiers_kwargs = [self.classifiers_kwargs]*len(self.classifiers)
+        self.models:IterOptional[nn.Module] = models
+        if not isinstance(self.models, list):
+            self.models = [self.models]
+        self.models_kwargs = models_kwargs if models_kwargs else [{}]*len(self.models)
+        if not isinstance(self.models_kwargs, list):
+            self.models_kwargs = [self.models_kwargs]*len(self.models)
         self.optimizers = optimizers
         if not isinstance(self.optimizers, list):
-            self.optimizers = [self.optimizers]*len(self.classifiers)
-        self.optimizers_kwargs = optimizers_kwargs if optimizers_kwargs else [{}]*len(self.classifiers)
+            self.optimizers = [self.optimizers]*len(self.models)
+        self.optimizers_kwargs = optimizers_kwargs if optimizers_kwargs else [{}]*len(self.models)
         if not isinstance(self.optimizers_kwargs, list):
-            self.optimizers_kwargs = [self.optimizers_kwargs]*len(self.classifiers)
+            self.optimizers_kwargs = [self.optimizers_kwargs]*len(self.models)
         self.lr_schedulers = lr_schedulers
         if not isinstance(self.optimizers, list):
-            self.lr_schedulers = [self.lr_schedulers]*len(self.classifiers)
-        self.lr_schedulers_kwargs = lr_schedulers_kwargs if lr_schedulers_kwargs else [{}]*len(self.classifiers)
+            self.lr_schedulers = [self.lr_schedulers]*len(self.models)
+        self.lr_schedulers_kwargs = lr_schedulers_kwargs if lr_schedulers_kwargs else [{}]*len(self.models)
         if not isinstance(self.lr_schedulers_kwargs, list):
-            self.lr_schedulers_kwargs = [self.lr_schedulers_kwargs]*len(self.classifiers)
+            self.lr_schedulers_kwargs = [self.lr_schedulers_kwargs]*len(self.models)
         self.criterion = criterion
         self.criterion_kwargs = criterion_kwargs if criterion_kwargs else {}
         self.save_path = save_path
@@ -148,8 +148,8 @@ class SupervisedTraining(TrainingScript):
             autoencoding=self.autoencoding,
             incremental=self.incremental,
             pipelines=self.pipelines,
-            models=self.classifiers,
-            models_kwargs=self.classifiers_kwargs,
+            models=self.models,
+            models_kwargs=self.models_kwargs,
             optimizers=self.optimizers,
             optimizers_kwargs=self.optimizers_kwargs,
             lr_schedulers=self.lr_schedulers,
