@@ -9,7 +9,7 @@ readme = "README.md"
 python = "^3.8"
 numpy = "*"
 onnx = "*"
-onnxruntime-gpu = "^1.19"
+onnxruntime-gpu = ">=1.19"
 pandas = "*"
 pettingzoo = "*"
 ray = [
