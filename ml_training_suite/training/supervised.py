@@ -48,6 +48,7 @@ class SupervisedTraining(TrainingScript):
             train_proportion:float = 0.9,
             validation_proportion:float = 0.1,
             label_to_stratify:Union[str, None] = None,
+            label_to_cluster_by:Union[str, None] = None,
             batch_size:int = 64,
             shuffle:bool = True,
             num_workers:int = 0,
@@ -91,6 +92,7 @@ class SupervisedTraining(TrainingScript):
         self.train_proportion = train_proportion
         self.validation_proportion = validation_proportion
         self.label_to_stratify = label_to_stratify
+        self.label_to_cluster_by = label_to_cluster_by
         self.training_manager = None
         self.trainer = Trainer if trainer_class is None else trainer_class
         self.autoencoding = autoencoding
@@ -143,6 +145,7 @@ class SupervisedTraining(TrainingScript):
             train_proportion = self.train_proportion,
             validation_proportion = self.validation_proportion,
             label_to_stratify = self.label_to_stratify,
+            label_to_cluster_by = self.label_to_cluster_by,
             shuffle=self.dl_kwargs["shuffle"],
             trainer_class=self.trainer,
             autoencoding=self.autoencoding,

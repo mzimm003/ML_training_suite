@@ -380,6 +380,7 @@ class TrainingManager:
         train_proportion:float,
         validation_proportion:float,
         label_to_stratify:Union[None,str],
+        label_to_cluster_by:Union[None,str],
         shuffle:bool,
         trainer_class:Type['Trainer'],
         autoencoding:bool = False,
@@ -400,6 +401,7 @@ class TrainingManager:
         self.train_proportion = train_proportion
         self.validation_proportion = validation_proportion
         self.label_to_stratify = label_to_stratify
+        self.label_to_cluster_by = label_to_cluster_by
         self.data = data
         self.dl_kwargs = dl_kwargs
         self.trainer_class = trainer_class
@@ -457,6 +459,9 @@ class TrainingManager:
                 train_size=self.train_proportion,
                 test_size=self.validation_proportion,
                 shuffle=self.shuffle,
+                clusters=(None
+                          if self.label_to_cluster_by is None
+                          else [getattr(self.data, self.label_to_cluster_by)]),
                 stratify=(None
                           if self.label_to_stratify is None
                           else [getattr(self.data, self.label_to_stratify)])
