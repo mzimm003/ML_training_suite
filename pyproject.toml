@@ -12,12 +12,27 @@ onnx = "*"
 onnxruntime-gpu = "1.19.2"
 pandas = "*"
 pettingzoo = "*"
+pytest = {version = "8.2.1", optional = true}
+pytest-benchmark = {version = "*", optional = true}
 ray = [
     {version="<2.11", extras=["tune","rllib"], python="<3.9"},
     {version="*", extras=["tune","rllib"], python=">=3.9"}]
 scikit-learn = "*"
 skl2onnx = "*"
+sphinx = {version = "7.1.2", optional = true}
+sphinx_design = {version = "*", optional = true}
+sphinxcontrib-bibtex = {version = "*", optional = true}
 torch = "*"
+
+[tool.poetry.extras]
+documentation = ["sphinx", "sphinx_design", "sphinxcontrib-bibtex"]
+testing = ["pytest"]
+benchmarking = ["pytest-benchmark"]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "."
+]
 
 [build-system]
 requires = ["poetry-core"]

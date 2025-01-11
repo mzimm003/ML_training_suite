@@ -313,11 +313,69 @@ class DataHandler:
             out, *_ = mod(**inp)
             self.inputs[list(inp.keys())[0]] = out
 
+class ClusterManager:
+    def __init__(self):
+        self.train_clusts = None
+        self.test_clusts = None
+
+    def preserve_cluster_split(
+            self,
+            idxs:list[int],
+            clusters:list[int],
+            train_size:int,
+            test_size:int,
+            ):
+        # Determine clusters that exist, in what position, and in what size
+        unq_clusts, unq_clust_first_indx, unq_clust_counts = np.unique(
+            clusters, return_index=True, return_counts=True)
+        clust_order_idxs = np.argsort(unq_clust_first_indx)
+        clusts_ordered = unq_clusts[clust_order_idxs]
+        unq_clust_counts_ordered = unq_clust_counts[clust_order_idxs]
+        if self.train_clusts is None:
+            # Establish train clusters by first clusters to fit
+            valid_train_clusts_mask = unq_clust_counts_ordered <= train_size
+            cum_unq_clust_counts_ordered = np.cumsum(
+                unq_clust_counts_ordered[valid_train_clusts_mask])
+            fits_train_clusts_mask = cum_unq_clust_counts_ordered <= train_size            
+            self.train_clusts = clusts_ordered[valid_train_clusts_mask][fits_train_clusts_mask]
+            
+            # Establish test clusters by first clusters to fit not in train set
+            test_size += train_size - cum_unq_clust_counts_ordered[fits_train_clusts_mask][-1]
+            valid_test_clusts_mask = np.logical_and(
+                unq_clust_counts_ordered <= test_size,
+                np.logical_not(np.isin(clusts_ordered, self.train_clusts))
+                )
+            cum_unq_clust_counts_ordered = np.cumsum(
+                unq_clust_counts_ordered[valid_test_clusts_mask])
+            fits_test_clusts_mask = cum_unq_clust_counts_ordered <= test_size
+            self.test_clusts = clusts_ordered[valid_test_clusts_mask][fits_test_clusts_mask]
+        else:
+            already_train_mask = np.isin(clusts_ordered, self.train_clusts)
+            already_test_mask = np.isin(clusts_ordered, self.test_clusts)
+            not_already_placed_mask = np.logical_not(np.logical_or(
+                already_train_mask,
+                already_test_mask
+            ))
+            if not_already_placed_mask.any():
+                new_cm = ClusterManager()
+                new_cm.preserve_cluster_split(
+                    idxs=idxs[np.isin(clusters, clusts_ordered[not_already_placed_mask])],
+                    clusters = clusters[np.isin(clusters, clusts_ordered[not_already_placed_mask])],
+                    train_size= train_size - np.sum(unq_clust_counts_ordered[already_train_mask]),
+                    test_size = test_size - np.sum(unq_clust_counts_ordered[already_test_mask]),)
+                self.train_clusts = np.append(self.train_clusts, new_cm.train_clusts)
+                self.test_clusts = np.append(self.test_clusts, new_cm.test_clusts)
+        train_idxs = idxs[np.isin(clusters,self.train_clusts)]
+        test_idxs = idxs[np.isin(clusters, self.test_clusts)]
+
+        return train_idxs, test_idxs
+
 def train_test_split(
         *arrays:ArrayLike,
         train_size:Union[int,float]=None,
         test_size:Union[int, float]=None,
         shuffle:bool=True,
+        clusters:Union[List[ArrayLike],None]=None,
         stratify:Union[List[ArrayLike],None]=None,
         seed=None,
         ):
@@ -325,6 +383,33 @@ def train_test_split(
     Imitates scikit-learn function with the same name.
 
     Created to provide a speed up, especially when stratifying.
+
+    WARNING: Use of clusters is a subset sum problem (i.e. NP-Hard) when solved
+    for train/test sizes precisely, which, for large datasets, may be
+    inneficient to calculate. So, instead the train_size serves as a maximum,
+    and the more granular and uniform cluster sizes are, the closer to the
+    maximum the train set will be in practice. The test set will then consider
+    any difference from the train set size and its maximum combined with
+    test_size to be the maximum size.
+
+    WARNING-2: Use of clusters and stratification together may force poor
+    stratificaiton. Clusters will be prioritized, as its purpose is to prevent
+    data leakage. Due to the NP-Hard nature of the problem, and the approximate
+    solution implemented, it's possible the stratification of one class will
+    force all examples of another class into either the train or test set based
+    on their clustered relationship to the class already stratified.
+
+    Args:
+        arrays: Data(s) to be split.
+        train_size: Number or proportion of data points to be split into train
+          set.
+        test_size: Number or proportion of data points to be split into test
+          set.
+        shuffle: Whether to shuffle data before splitting.
+        clusters: Group labels where all members of a group should be in the
+          same split.
+        stratify: Group labels where members of a group should be evenly split.
+        seed: If provided, will ensure consistent results for RNG operations.
     """
     assert isinstance(test_size, type(train_size))
     rng = np.random.default_rng(seed)
@@ -344,23 +429,44 @@ def train_test_split(
         assert (train_size + test_size) <= len(array)
 
         if stratify is None:
-            train_idxs = idxs[:train_size]
-            test_idxs = idxs[train_size:train_size+test_size]
+            if clusters is None:
+                train_idxs = idxs[:train_size]
+                test_idxs = idxs[train_size:train_size+test_size]
+            else:
+                train_idxs, test_idxs = ClusterManager().preserve_cluster_split(
+                    idxs=idxs,
+                    clusters=clusters[i][idxs],
+                    train_size=train_size,
+                    test_size=test_size,
+                )
         else:
             train_idxs = []
             test_idxs = []
             strat = stratify[i][idxs]
             class_id, class_count = np.unique(strat, return_counts=True)
             class_ratios = class_count/len(strat)
+            cm = ClusterManager()
             for c, rat in zip(class_id, class_ratios):
                 mask = strat == c
                 population = idxs[mask]
                 train_sample_size = int(train_size*rat)
-                train_idxs.extend(
-                    population[:train_sample_size])
                 test_sample_size = int(math.ceil(test_size*rat))
-                test_idxs.extend(
-                    population[train_sample_size:train_sample_size+test_sample_size])
+                if clusters is None:
+                    train_idxs.extend(
+                        population[:train_sample_size])
+                    test_idxs.extend(
+                        population[train_sample_size:train_sample_size+test_sample_size])
+                else:
+                    train_idxs_add, test_idxs_add = cm.preserve_cluster_split(
+                        idxs=population,
+                        clusters=clusters[i][population],
+                        train_size=train_sample_size,
+                        test_size=test_sample_size
+                    )
+                    train_idxs.extend(
+                        train_idxs_add)
+                    test_idxs.extend(
+                        test_idxs_add)
             train_idxs = rng.permutation(train_idxs)
             test_idxs = rng.permutation(test_idxs)
             
