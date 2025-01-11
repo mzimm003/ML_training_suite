@@ -320,8 +320,8 @@ class ClusterManager:
 
     def preserve_cluster_split(
             self,
-            idxs:list[int],
-            clusters:list[int],
+            idxs:List[int],
+            clusters:List[int],
             train_size:int,
             test_size:int,
             ):
