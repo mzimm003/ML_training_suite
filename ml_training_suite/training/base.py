@@ -180,6 +180,7 @@ class Criterion(ML_Element, register=False):
     registry = Registry(
         MSE = nn.MSELoss,
         CrossEntropy = CrossEntropyLoss,
+        NLL = nn.NLLLoss
     )
 
 def ray_trainable_wrap(
