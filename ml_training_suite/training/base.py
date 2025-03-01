@@ -173,6 +173,7 @@ class CrossEntropyLoss(nn.CrossEntropyLoss):
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         if input.ndim > 1:
             input = torch.movedim(input, self.class_index, 1)
+        if target.ndim > 1:
             target = torch.movedim(target, self.class_index, 1)
         return super().forward(input, target)
 
