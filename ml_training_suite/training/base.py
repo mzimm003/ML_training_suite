@@ -433,6 +433,9 @@ class TrainingManager:
         self.lr_schedulers_kwargs = lr_schedulers_kwargs if lr_schedulers_kwargs else [{}]*len(self.models)
         if not isinstance(self.lr_schedulers_kwargs, list):
             self.lr_schedulers_kwargs = [self.lr_schedulers_kwargs]*len(self.models)
+        if "weight" in criterion_kwargs and isinstance(criterion_kwargs["weight"], str):
+            criterion_kwargs["weight"] = self.data.get_balancing_class_weights(
+                feature=criterion_kwargs["weight"])
         self.criterion = Criterion.initialize(
             criterion, criterion_kwargs)
         self.criterion.to(device=self.device)

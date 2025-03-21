@@ -199,6 +199,9 @@ class Dataset(DatasetTorch, ML_Element, register=False):
     def getName(self):
         return self.__class__.__name__
     
+    def get_balancing_class_weights(self, feature):
+        raise NotImplementedError
+    
     def __setattr__(self, name: str, value: Any) -> None:
         #TODO implement to automatically convert dict and list attributes to
         # necessary split value and offset attributes stored as numpy arrays by
